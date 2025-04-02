@@ -59,7 +59,7 @@ app.get('/light/status', (req, res) => {
 // 📌 전구 ON/OFF 제어 API (MQTT 메시지 전송)
 app.post('/light/toggle', (req, res) => {
   if (!mqttClient.connected) {
-    return res.status(500).json({ error: 'MQTT 연결 실패, 다시 시도하세요.' });
+    return res.status(500).json({ error: 'MQTT 연결 실패, 다시 시도하세요. ' });
   }
 
   isLightOn = !isLightOn; // 상태 변경
