@@ -5,6 +5,7 @@ int lightPin;  // 전구를 제어할 핀 번호
 void setupLightPin(int pin) {
   lightPin = pin;
   pinMode(lightPin, OUTPUT);  // 전구 핀 초기화
+  digitalWrite(lightPin, LOW);
 }
 
 void controlLight(String action) {
