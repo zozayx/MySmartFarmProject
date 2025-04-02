@@ -1,0 +1,3 @@
+npm install
+npm install react-router-dom //router설정
+npm install react-icons //icons
