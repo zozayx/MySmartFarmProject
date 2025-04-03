@@ -1,3 +1,5 @@
 npm install
 npm install react-router-dom //router설정
 npm install react-icons //icons
+npm install react-chartjs-2 chart.js //chart
+npm install react-bootstrap
