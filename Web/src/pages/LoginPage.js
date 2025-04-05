@@ -58,7 +58,6 @@ function LoginPage({ setUserRole }) {
           <Form.Label>아이디</Form.Label>
           <Form.Control
             type="text"
-            placeholder="admin or user"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -69,7 +68,6 @@ function LoginPage({ setUserRole }) {
           <Form.Label>비밀번호</Form.Label>
           <Form.Control
             type="password"
-            placeholder="1234"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
