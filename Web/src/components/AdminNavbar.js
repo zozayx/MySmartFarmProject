@@ -28,7 +28,6 @@ function AdminNavbar() {
               <NavDropdown.Item onClick={() => navigate("/admin/profile")}>
                 내 프로필
               </NavDropdown.Item>
-              <NavDropdown.Item onClick={() => navigate("/help")}>도움말</NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item onClick={() => navigate("/logout")}>로그아웃</NavDropdown.Item>
             </NavDropdown>
