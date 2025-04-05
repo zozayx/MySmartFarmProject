@@ -27,7 +27,8 @@ function AdminMonitoring() {
                 <Card.Body>
                   <Card.Title>{user.fullName}</Card.Title>
                   <Card.Subtitle className="mb-2 text-muted">
-                    📍 {user.farmLocation}
+                    위치: {user.farmLocation}<br />
+                    품종: {user.plantType}
                   </Card.Subtitle>
                   <hr />
                   <div className="mb-3">
