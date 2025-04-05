@@ -1,10 +1,17 @@
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
+import { useNavigate } from "react-router-dom";
 
-function Logout() {
+function Logout({ setUserRole }) {
+  const navigate = useNavigate();
+
   const handleLogout = () => {
+    // 🔐 세션 스토리지 삭제
+    sessionStorage.removeItem("userRole");
+
     alert("로그아웃 되었습니다.");
-    window.location.href = "/"; // 홈으로 이동
+    setUserRole(null); // 상태 초기화
+    navigate("/"); // 홈으로 이동
   };
 
   return (

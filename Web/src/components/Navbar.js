@@ -4,6 +4,7 @@ import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import { Link } from "react-router-dom";
 
+
 function SmartFarmNavbar() {
   return (
     <Navbar expand="lg" bg="success" data-bs-theme="dark" className="shadow-lg">

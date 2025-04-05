@@ -1,51 +1,74 @@
-require('dotenv').config(); // .env 파일 로드
+// server.js
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mqtt = require('mqtt');
 
-// Express 서버 설정
 const app = express();
 const PORT = process.env.PORT || 5000;
+app.use(cors());
+app.use(express.json());
 
-app.use(cors()); // CORS 활성화
-app.use(express.json()); // JSON 요청 파싱
+// MQTT 연결 (브로커는 Raspberry Pi)
+const RPI_IP = '172.20.10.2'; // 라즈베리파이 IP
+const mqttClient = mqtt.connect(`mqtt://${RPI_IP}`);
 
-// MQTT 브로커 설정 (TLS 적용)
-const MQTT_BROKER = 'mqtts://test.mosquitto.org';
-const MQTT_TOPIC = 'smartfarm/DSE/light';
+const CONTROL_TOPIC = 'esp32/control';     // 제어 명령
+const SENSOR_TOPIC = 'esp32/testdata';     // 센서 데이터 (ESP32 → 서버)
 
-// MQTT 클라이언트 생성 (TLS 적용)
-const mqttClient = mqtt.connect(MQTT_BROKER, {
-  port: 8883,  // TLS 포트
-  reconnectPeriod: 1000, // 1초마다 재연결 시도
-  rejectUnauthorized: false, // 🔥 공용 브로커일 경우 필요하지만, 자체 브로커 사용 시 제거할 것
-});
-
-// ✅ MQTT 연결 상태 확인
+// MQTT 연결 완료
 mqttClient.on('connect', () => {
-  console.log('✅ MQTT 연결 성공!');
-  mqttClient.subscribe(MQTT_TOPIC, (err) => {
+  console.log('✅ 웹서버가 Raspberry Pi MQTT 브로커에 연결됨');
+
+  // 센서 데이터 토픽 구독
+  mqttClient.subscribe(SENSOR_TOPIC, (err) => {
     if (err) {
-      console.error('❌ MQTT 토픽 구독 실패:', err);
+      console.error('❌ 센서 토픽 구독 실패:', err);
     } else {
-      console.log(`📡 MQTT 토픽 구독 성공: ${MQTT_TOPIC}`);
+      console.log(`📡 센서 토픽 구독 완료: ${SENSOR_TOPIC}`);
     }
   });
 });
 
-// ❌ MQTT 연결 실패 시 처리
+// ✅ MQTT 연결 에러 처리
 mqttClient.on('error', (err) => {
-  console.error('❌ MQTT 연결 실패:', err);
+  console.error('❌ MQTT 연결 중 오류 발생:', err);
 });
 
-// 🚨 연결이 끊겼을 때 자동 재연결 로직
+// ✅ MQTT 연결 끊김 처리
 mqttClient.on('close', () => {
-  console.warn('⚠️ MQTT 연결이 끊어졌습니다. 다시 연결 시도 중...');
+  console.warn('⚠️ MQTT 연결이 끊어졌습니다.');
 });
 
-// 📩 ESP32에서 메시지를 받았는지 확인하는 로그
+// MQTT 메시지 수신 처리
 mqttClient.on('message', (topic, message) => {
-  console.log(`📥 MQTT 메시지 수신 [${topic}]: ${message.toString()}`);
+  if (topic === SENSOR_TOPIC) {
+    const sensorValue = message.toString();
+    console.log(`📥 [MQTT 수신] 센서 데이터: ${sensorValue}`);
+
+    // 👉 여기에 DB 저장 또는 분석 코드 추가 가능
+  }
+});
+
+
+// 로그인 처리
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  if (username === 'admin' && password === '1234') {
+    res.status(200).json({ success: true, role: 'admin' });
+  } else if (username === 'user' && password === '1234') {
+    res.status(200).json({ success: true, role: 'user' });
+  } else {
+    res.status(401).json({ success: false, message: '로그인 실패: 아이디 또는 비밀번호가 틀렸습니다.' });
+  }
+});
+
+// 📩 라즈베리파이로부터 HTTP로 센서 데이터 받는 용도 (선택사항)
+app.post('/data', (req, res) => {
+  const { sensorData } = req.body;
+  console.log('📨 [HTTP 수신] 라즈베리파이로부터 센서 데이터:', sensorData);
+  res.sendStatus(200);
 });
 
 // 전구 상태 저장 변수
@@ -56,25 +79,25 @@ app.get('/light/status', (req, res) => {
   res.json({ status: isLightOn ? 'on' : 'off' });
 });
 
-// 📌 전구 ON/OFF 제어 API (MQTT 메시지 전송)
+// 💡 제어 요청 (웹 → ESP32 via MQTT)
 app.post('/light/toggle', (req, res) => {
   if (!mqttClient.connected) {
-    return res.status(500).json({ error: 'MQTT 연결 실패, 다시 시도하세요. ' });
+    return res.status(500).json({ error: 'MQTT 연결 실패' });
   }
 
   isLightOn = !isLightOn; // 상태 변경
   const message = isLightOn ? 'ON' : 'OFF';
-  mqttClient.publish(MQTT_TOPIC, message, { qos: 1 }, (err) => {
+  mqttClient.publish(CONTROL_TOPIC, message, { qos: 1 }, (err) => {
     if (err) {
-      console.error('❌ MQTT 메시지 전송 실패:', err);
-      return res.status(500).json({ error: '전구 상태 변경 실패' });
+      console.error('❌ 제어 MQTT 전송 실패:', err);
+      return res.status(500).json({ error: '전송 실패' });
     }
-    console.log(`💡 전구 상태 변경: ${message}`);
+    console.log(`📤 제어 명령 MQTT 전송됨: ${message}`);
     res.json({ status: isLightOn ? 'on' : 'off' });
   });
 });
 
 // 서버 실행
 app.listen(PORT, () => {
-  console.log(`✅ 서버가 http://localhost:${PORT} 에서 실행 중!`);
+  console.log(`🌐 웹서버 실행 중: http://localhost:${PORT}`);
 });

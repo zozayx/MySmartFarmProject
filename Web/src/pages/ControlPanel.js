@@ -5,6 +5,9 @@ import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
+//서버 주
+const BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 function ControlPanel() {
   const [lightStatus, setLightStatus] = useState("off"); // 전구 상태
   const [waterStatus, setWaterStatus] = useState("off"); // 급수 시스템 상태
@@ -12,7 +15,7 @@ function ControlPanel() {
 
   // 전구 상태 가져오기
   useEffect(() => {
-    fetch("http://localhost:5000/light/status")
+    fetch(`${BASE_URL}/light/status`)
       .then((res) => res.json())
       .then((data) => setLightStatus(data.status))
       .catch((err) => console.error("전구 상태 가져오기 실패:", err));
@@ -22,7 +25,7 @@ function ControlPanel() {
   const toggleLight = () => {
     setErrorMessage(""); // 에러 메시지 초기화
 
-    fetch("http://localhost:5000/light/toggle", { method: "POST" })
+    fetch(`${BASE_URL}/light/toggle`, { method: "POST" })
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "on" || data.status === "off") {
@@ -81,7 +84,7 @@ function ControlPanel() {
                 {waterStatus === "on" ? "급수 중지" : "급수 시작"}
               </Button>
               {/* 🔻 아직 서버와 연결되지 않았음을 표시 */}
-              <p className="mt-3 text-danger">⚠️ 아직 서버와 연결되지 않음</p>
+              <p className="mt-3 text-danger">⚠️ 아직 서비스 준비중중</p>
             </Card.Body>
           </Card>
         </Col>
