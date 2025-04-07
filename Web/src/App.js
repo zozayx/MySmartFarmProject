@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { PopupProvider } from "./context/PopupContext";
 
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage"; // ✅ 홈페이지 추가
@@ -13,7 +14,6 @@ import DataVisualization from "./pages/User/UserDataVisualization";
 import Settings from "./pages/User/UserSettings";
 import Profile from "./pages/User/UserProfile";
 import Help from "./pages/Help";
-import Logout from "./pages/Logout";
 import UserEnvironmentSettings from "./pages/User/UserEnvironmentSettings";
 
 // 어드민 페이지
@@ -41,6 +41,7 @@ function App() {
 
   return (
     <Router>
+      <PopupProvider>
       {userRole === "user" && <SmartFarmNavbar />}
       {userRole === "admin" && <AdminNavbar />}
 
@@ -61,7 +62,6 @@ function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/help" element={<Help />} />
-            <Route path="/logout" element={<Logout setUserRole={setUserRole} />} />
           </>
         )}
 
@@ -77,13 +77,13 @@ function App() {
             <Route path="/admin/security" element={<AdminSecuritySettings />} />
             <Route path="/admin/system" element={<AdminSystemSettings />} />
             <Route path="/admin/profile" element={<AdminProfile />} />
-            <Route path="/logout" element={<Logout setUserRole={setUserRole} />} />
           </>
         )}
 
         {/* ✅ 잘못된 경로 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </PopupProvider>
     </Router>
   );
 }
