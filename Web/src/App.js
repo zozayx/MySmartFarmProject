@@ -4,12 +4,17 @@ import { PopupProvider } from "./context/PopupContext";
 
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage"; // ✅ 홈페이지 추가
+import BoardPage from "./pages/BoardPage";
+import WritePostPage from "./pages/WritePostPage";
+import PostDetailPage from "./pages/PostDetailPage";
+
 
 import SmartFarmNavbar from "./components/UserNavbar";
 import AdminNavbar from "./components/AdminNavbar";
 
 // 유저 페이지
-import UserDashboardControlPanel from "./pages/User/UserDashboardControlPanel";
+import UserDashboard from './pages/User/UserDashboard';
+import UserControlPanel from './pages/User/UserControlPanel';
 import DataVisualization from "./pages/User/UserDataVisualization";
 import Settings from "./pages/User/UserSettings";
 import Profile from "./pages/User/UserProfile";
@@ -42,12 +47,17 @@ function App() {
   return (
     <Router>
       <PopupProvider>
-      {userRole === "user" && <SmartFarmNavbar />}
-      {userRole === "admin" && <AdminNavbar />}
+      {userRole === "user" && <SmartFarmNavbar setUserRole={setUserRole} />}
+      {userRole === "admin" && <AdminNavbar setUserRole={setUserRole} />}
+
 
       <Routes>
         {/* ✅ 홈페이지 - 홍보용 */}
         <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/board" element={<BoardPage />} />
+        <Route path="/board/write" element={userRole ? <WritePostPage /> : <Navigate to="/login" />} />
+        <Route path="/board/:id" element={userRole ? <PostDetailPage /> : <Navigate to="/login" />} />
 
         {/* ✅ 로그인 */}
         <Route path="/login" element={<LoginPage setUserRole={setUserRole} />} />
@@ -55,9 +65,10 @@ function App() {
         {/* ✅ 유저용 페이지 */}
         {userRole === "user" && (
           <>
-            <Route path="/user" element={<Navigate to="/user/dashboard-control" />} />
-            <Route path="/user/dashboard-control" element={<UserDashboardControlPanel />} />
-            <Route path="/data" element={<DataVisualization />} />
+            <Route path="/user" element={<Navigate to="/user/dashboard" />} />
+            <Route path="/user/dashboard" element={<UserDashboard />} />
+            <Route path="/user/control" element={<UserControlPanel />} />
+            <Route path="/user/data" element={<DataVisualization />} />
             <Route path="/env-settings" element={<UserEnvironmentSettings />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/profile" element={<Profile />} />

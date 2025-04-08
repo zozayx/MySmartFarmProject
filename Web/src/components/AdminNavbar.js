@@ -3,7 +3,7 @@ import { Navbar, Nav, Container, NavDropdown } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { usePopup } from "../context/PopupContext"; // ✅ 팝업 컨텍스트 추가
 
-function AdminNavbar() {
+function AdminNavbar({ setUserRole }) {
   const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
   const { showPopup } = usePopup(); // ✅ 모달 제어 함수 가져오기
@@ -29,7 +29,11 @@ function AdminNavbar() {
           message: "정상적으로 로그아웃되었습니다.",
           buttonText: "확인",
           confirmVariant: "primary", // 파랑
-          onConfirm: () => navigate("/login"),
+          onConfirm: () => {
+            navigate("/login");
+            // 살짝 늦게 userRole을 초기화해서 UI 깜빡임 방지
+            setTimeout(() => setUserRole(null), 50);
+          },
         });
       },
     });
@@ -59,9 +63,9 @@ function AdminNavbar() {
         <Navbar.Collapse id="admin-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link onClick={() => handleNavClick("/admin")}>대시보드</Nav.Link>
-            <Nav.Link onClick={() => handleNavClick("/admin/users")}>사용자 목록</Nav.Link>
-            <Nav.Link onClick={() => handleNavClick("/admin/analytics")}>분석 데이터</Nav.Link>
-            <Nav.Link onClick={() => handleNavClick("/admin/monitoring")}>디바이스 모니터링</Nav.Link>
+            <Nav.Link onClick={() => handleNavClick("/admin/users")}>사용자 관리</Nav.Link>
+            <Nav.Link onClick={() => handleNavClick("/admin/analytics")}>사용 데이터 분석</Nav.Link>
+            <Nav.Link onClick={() => handleNavClick("/admin/monitoring")}>장치 모니터링</Nav.Link>
             <Nav.Link onClick={() => handleNavClick("/admin/eventlogs")}>이벤트 로그</Nav.Link>
             <Nav.Link onClick={() => handleNavClick("/admin/environment")}>환경 설정</Nav.Link>
             <Nav.Link onClick={() => handleNavClick("/admin/security")}>보안 설정</Nav.Link>

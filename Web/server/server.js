@@ -11,9 +11,10 @@ app.use(express.json());
 // 환경 변수에서 라즈베리파이 IP 가져오기 (localhost로 로컬 테스트 가능)
 const RPI_IP = process.env.RPI_IP || 'localhost'; // 로컬 개발을 위한 기본값 localhost
 
-// 전구 상태 저장 변수
-let isLightOn = false;
-let isFanOn = false;
+// 초기 상태
+let lightStatus = "OFF";
+let fanStatus = "OFF";
+let wateringStatus = "OFF";
 
 // 로그인 처리
 app.post('/login', (req, res) => {
@@ -28,64 +29,60 @@ app.post('/login', (req, res) => {
   }
 });
 
-// 📌 전구 상태 조회 API
 app.get('/light/status', (req, res) => {
-  res.json({ status: isLightOn ? 'on' : 'off' });
+  console.log(`📥 [Light Status 요청] 현재 상태: ${lightStatus}`);
+  res.json({ lightStatus });
 });
 
-// 💡 조명 제어 요청 (웹 → 라즈베리파이)
-app.post('/light/toggle', (req, res) => {
-  isLightOn = !isLightOn; // 상태 변경
-  const message = isLightOn ? 'ON' : 'OFF';
-
-  // 라즈베리파이로 HTTP 요청 보내기 (axios 사용)
-  axios.post(`http://${RPI_IP}:3000/light/toggle`, { status: message })
-    .then(response => {
-      console.log(`📤 조명 제어 상태: ${message}`);
-      res.json({ status: isLightOn ? 'on' : 'off' });
-    })
-    .catch(err => {
-      console.error('❌ 라즈베리파이로 조명 제어 요청 실패:', err);
-
-      // 라즈베리파이로 요청을 보냈으나 실패한 경우
-      if (err.code === 'ECONNREFUSED') {
-        // 라즈베리파이 연결이 안 됐을 경우
-        res.status(500).json({ error: '⚠️ 라즈베리파이로 조명 제어 요청 실패! 라즈베리파이와 연결을 확인하세요.' });
-      } else {
-        // 네트워크 연결 등의 문제로 실패한 경우
-        res.status(500).json({ error: '⚠️ 전구 제어 요청 실패! 서버와의 연결을 확인하세요.' });
-      }
-    });
-});
-
-// 🌀 환기팬 상태 조회 API
+// 상태 반환 - 팬
 app.get('/fan/status', (req, res) => {
-  res.json({ status: isFanOn ? 'on' : 'off' });
+  console.log(`📥 [Fan Status 요청] 현재 상태: ${fanStatus}`);
+  res.json({ fanStatus });
 });
 
-// 🌀 환기팬 제어 요청 (웹 → 라즈베리파이)
+// 상태 반환 - 급수
+app.get('/watering/status', (req, res) => {
+  console.log(`📥 [Watering Status 요청] 현재 상태: ${wateringStatus}`);
+  res.json({ wateringStatus });
+});
+
+// 조명 토글
+app.post('/light/toggle', (req, res) => {
+  const { lightStatus: requestedStatus } = req.body;
+
+  if (!requestedStatus || (requestedStatus !== 'ON' && requestedStatus !== 'OFF')) {
+    return res.status(400).json({ error: '유효하지 않은 lightStatus 값입니다. (ON 또는 OFF)' });
+  }
+
+  lightStatus = requestedStatus;
+  console.log(`✅ 조명 상태 변경됨 → 현재 상태: ${lightStatus}`);
+  res.json({ lightStatus });
+});
+
+// 팬 토글
 app.post('/fan/toggle', (req, res) => {
-  isFanOn = !isFanOn; // 상태 변경
-  const message = isFanOn ? 'ON' : 'OFF';
+  const { fanStatus: requestedStatus } = req.body;
 
-  // 라즈베리파이로 HTTP 요청 보내기 (axios 사용)
-  axios.post(`http://${RPI_IP}:3000/fan/toggle`, { status: message })
-    .then(response => {
-      console.log(`📤 환기팬 제어 상태: ${message}`);
-      res.json({ status: isFanOn ? 'on' : 'off' });
-    })
-    .catch(err => {
-      console.error('❌ 라즈베리파이로 환기팬 제어 요청 실패:', err);
+  if (!requestedStatus || (requestedStatus !== 'ON' && requestedStatus !== 'OFF')) {
+    return res.status(400).json({ error: '유효하지 않은 fanStatus 값입니다. (ON 또는 OFF)' });
+  }
 
-      // 라즈베리파이로 요청을 보냈으나 실패한 경우
-      if (err.code === 'ECONNREFUSED') {
-        // 라즈베리파이 연결이 안 됐을 경우
-        res.status(500).json({ error: '⚠️ 라즈베리파이로 환기팬 제어 요청 실패! 라즈베리파이와 연결을 확인하세요.' });
-      } else {
-        // 네트워크 연결 등의 문제로 실패한 경우
-        res.status(500).json({ error: '⚠️ 환기팬 제어 요청 실패! 서버와의 연결을 확인하세요.' });
-      }
-    });
+  fanStatus = requestedStatus;
+  console.log(`✅ 팬 상태 변경됨 → 현재 상태: ${fanStatus}`);
+  res.json({ fanStatus });
+});
+
+// 급수 토글
+app.post('/watering/toggle', (req, res) => {
+  const { wateringStatus: requestedStatus } = req.body;
+
+  if (!requestedStatus || (requestedStatus !== 'ON' && requestedStatus !== 'OFF')) {
+    return res.status(400).json({ error: '유효하지 않은 wateringStatus 값입니다. (ON 또는 OFF)' });
+  }
+
+  wateringStatus = requestedStatus;
+  console.log(`✅ 급수 상태 변경됨 → 현재 상태: ${wateringStatus}`);
+  res.json({ wateringStatus });
 });
 
 // 서버 실행

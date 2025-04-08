@@ -15,8 +15,8 @@ export function PopupProvider({ children }) {
     redirectPath: "",
     buttonText: "",
     cancelButtonText: "",
-    confirmVariant: "primary",  // ✅ 확인 버튼 색상
-    cancelVariant: "secondary", // ✅ 취소 버튼 색상
+    confirmVariant: "success",     // 초록색 기본
+    cancelVariant: "outline-success", // 연한 초록
     onConfirm: null,
     onCancel: null,
     show: false,
@@ -30,8 +30,8 @@ export function PopupProvider({ children }) {
     redirectPath = "",
     buttonText = "확인",
     cancelButtonText = "",
-    confirmVariant = "primary",   // ✅ 기본값은 파랑
-    cancelVariant = "secondary", // ✅ 기본값은 회색
+    confirmVariant = "success",
+    cancelVariant = "outline-success",
     onConfirm,
     onCancel,
   }) => {
@@ -75,32 +75,33 @@ export function PopupProvider({ children }) {
         backdrop="static"
         keyboard={false}
         size="sm"
+        contentClassName="rounded-4 border border-success-subtle shadow-sm"
       >
-        <Modal.Header closeButton className="bg-primary text-white">
-          <Modal.Title className="fw-bold fs-5">{popupData.title}</Modal.Title>
+        <Modal.Header closeButton className="bg-success-subtle border-0 rounded-top-4">
+          <Modal.Title className="fw-bold text-success fs-5">
+            🌱 {popupData.title}
+          </Modal.Title>
         </Modal.Header>
 
-        <Modal.Body className="text-center px-4 py-3">
-          <p className="fs-6 mb-0">{popupData.message}</p>
+        <Modal.Body className="text-center px-4 py-3 bg-light">
+          <p className="fs-6 text-dark mb-0">{popupData.message}</p>
         </Modal.Body>
 
-        <Modal.Footer className="justify-content-center pb-3">
-          {/* ✅ 확인 버튼이 왼쪽 */}
+        <Modal.Footer className="justify-content-center pb-3 bg-light border-0 rounded-bottom-4">
           <Button
             variant={popupData.confirmVariant}
             size="md"
-            className="px-4 me-2"
+            className="px-4 me-2 rounded-pill"
             onClick={handleConfirm}
           >
             {popupData.buttonText || "확인"}
           </Button>
 
-          {/* ✅ 취소 버튼이 오른쪽 */}
           {popupData.cancelButtonText && (
             <Button
               variant={popupData.cancelVariant}
               size="md"
-              className="px-4"
+              className="px-4 rounded-pill"
               onClick={handleCancel}
             >
               {popupData.cancelButtonText}

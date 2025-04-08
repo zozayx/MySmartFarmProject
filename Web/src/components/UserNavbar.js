@@ -4,12 +4,12 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import { Link, useNavigate } from "react-router-dom";
-import { usePopup } from "../context/PopupContext"; // 모달 컨텍스트 임포트
+import { usePopup } from "../context/PopupContext";
 
-function SmartFarmNavbar() {
+function SmartFarmNavbar({ setUserRole }) {
   const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
-  const { showPopup } = usePopup(); // 모달 함수 가져오기
+  const { showPopup } = usePopup();
 
   const handleNavClick = (path) => {
     setExpanded(false);
@@ -18,22 +18,24 @@ function SmartFarmNavbar() {
 
   const handleLogout = () => {
     setExpanded(false);
-  
     showPopup({
       title: "로그아웃",
       message: "로그아웃 하시겠습니까?",
       buttonText: "로그아웃",
       cancelButtonText: "취소",
-      confirmVariant: "success", // 초록
-      cancelVariant: "danger",   // 빨강
+      confirmVariant: "success",
+      cancelVariant: "danger",
       onConfirm: () => {
         sessionStorage.removeItem("userRole");
         showPopup({
           title: "로그아웃 완료",
           message: "정상적으로 로그아웃되었습니다.",
           buttonText: "확인",
-          confirmVariant: "primary", // 파랑
-          onConfirm: () => navigate("/login")
+          confirmVariant: "primary",
+          onConfirm: () => {
+            navigate("/login");
+            setTimeout(() => setUserRole(null), 50);
+          },
         });
       }
     });
@@ -59,19 +61,25 @@ function SmartFarmNavbar() {
 
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
-            <Nav.Link onClick={() => handleNavClick("/user/dashboard-control")} className="text-white">
-              🏡 대시보드 & 제어
+            <Nav.Link onClick={() => handleNavClick("/user/dashboard")} className="text-white">
+              🏡 대시보드
             </Nav.Link>
-            <Nav.Link onClick={() => handleNavClick("/data")} className="text-white">
-              📊 데이터
+            <Nav.Link onClick={() => handleNavClick("/user/control")} className="text-white">
+              🛠 제어 센터
+            </Nav.Link>
+            <Nav.Link onClick={() => handleNavClick("/user/data")} className="text-white">
+              📊 환경 그래프
             </Nav.Link>
             <Nav.Link onClick={() => handleNavClick("/env-settings")} className="text-white">
-              🌿 맞춤 설정
+              🌿 내 농장 설정
+            </Nav.Link>
+            <Nav.Link onClick={() => handleNavClick("/board")} className="text-white">
+              📋 커뮤니티
             </Nav.Link>
 
-            <NavDropdown title="⚙️ 설정" id="basic-nav-dropdown">
+            <NavDropdown title="⚙️ 설정" id="settings-nav-dropdown">
               <NavDropdown.Item onClick={() => handleNavClick("/settings")}>
-                🔧 시스템 설정
+                🔧 앱 설정
               </NavDropdown.Item>
               <NavDropdown.Item onClick={() => handleNavClick("/profile")}>
                 👤 내 프로필
