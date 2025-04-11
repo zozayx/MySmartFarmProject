@@ -6,7 +6,7 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import { Link, useNavigate } from "react-router-dom";
 import { usePopup } from "../context/PopupContext";
 
-function SmartFarmNavbar({ setUserRole }) {
+function UserNavbar({ setUserRole }) {
   const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
   const { showPopup } = usePopup();
@@ -115,4 +115,4 @@ function SmartFarmNavbar({ setUserRole }) {
   );
 }
 
-export default SmartFarmNavbar;
+export default UserNavbar;
