@@ -18,11 +18,31 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 function UserDataVisualization() {
   const [sensorData, setSensorData] = useState([]);
   const [timeFrame, setTimeFrame] = useState("7days");
+  const [chartHeight, setChartHeight] = useState(100); // 기본 높이 설정
+
+  // 화면 크기에 따른 차트 높이 조정
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) { // 모바일 화면 크기
+        setChartHeight(200); // 모바일에서 차트 높이를 200으로 설정
+      } else { // 데스크탑 화면 크기
+        setChartHeight(100); // 데스크탑에서 차트 높이를 100으로 설정
+      }
+    };
+
+    handleResize(); // 초기 화면 크기 설정
+    window.addEventListener("resize", handleResize); // 화면 크기 변경 시 처리
+
+    return () => window.removeEventListener("resize", handleResize); // 컴포넌트 언마운트 시 이벤트 제거
+  }, []); // 빈 배열을 넣어 최초 한 번만 실행되도록 수정
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/user/sensor-data?timeFrame=${timeFrame}`);
+        const response = await fetch(`${BASE_URL}/user/sensor-data?timeFrame=${timeFrame}`, {
+          method: "GET",
+          credentials: "include",  // 쿠키 포함
+        });
         const data = await response.json();
         setSensorData(data);
       } catch (error) {
@@ -105,21 +125,21 @@ function UserDataVisualization() {
           <Card className="shadow-sm mb-4">
             <Card.Body>
               <h5 className="text-danger mb-3">🌡️ 온도 변화</h5>
-              <Line data={temperatureChart} height={250} options={{ responsive: true }} />
+              <Line data={temperatureChart} height={chartHeight} options={{ responsive: true }} />
             </Card.Body>
           </Card>
 
           <Card className="shadow-sm mb-4">
             <Card.Body>
               <h5 className="text-info mb-3">💧 습도 변화</h5>
-              <Line data={humidityChart} height={250} options={{ responsive: true }} />
+              <Line data={humidityChart} height={chartHeight} options={{ responsive: true }} />
             </Card.Body>
           </Card>
 
           <Card className="shadow-sm mb-4">
             <Card.Body>
               <h5 className="text-teal mb-3">🌱 토양 수분 변화</h5>
-              <Line data={moistureChart} height={250} options={{ responsive: true }} />
+              <Line data={moistureChart} height={chartHeight} options={{ responsive: true }} />
             </Card.Body>
           </Card>
         </Col>

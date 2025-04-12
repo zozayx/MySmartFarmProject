@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
@@ -224,7 +225,8 @@ app.get('/user/dashboard', authenticateToken, async (req, res) => {
 });
 
 // ✅ User의 환경 그래프
-app.get('/user/sensor-data', async (req, res) => {
+app.get('/user/sensor-data', authenticateToken, async (req, res) => {
+  const userId = req.user.userId; // authenticateToken 미들웨어에서 userId 추출
   const { timeFrame } = req.query;
 
   if (!timeFrame || !['7days', '30days'].includes(timeFrame)) {
@@ -244,11 +246,14 @@ app.get('/user/sensor-data', async (req, res) => {
     const query = `
       SELECT DATE(time) as date, sensor_type, AVG(sensor_value) as avg_value
       FROM sensor_logs
-      WHERE time >= $1 AND time <= $2
+      JOIN devices ON sensor_logs.device_id = devices.device_id
+      WHERE devices.user_id = $1
+        AND time >= $2
+        AND time <= $3
       GROUP BY DATE(time), sensor_type
       ORDER BY DATE(time);
     `;
-    const result = await pool.query(query, [startDate, currentDate.format('YYYY-MM-DD')]);
+    const result = await pool.query(query, [userId, startDate, currentDate.format('YYYY-MM-DD')]);
 
     const sensorData = result.rows.reduce((acc, row) => {
       const date = moment(row.date).format('YYYY-MM-DD');
@@ -303,6 +308,71 @@ app.post('/watering/toggle', (req, res) => {
   wateringStatus = status;
   res.json({ wateringStatus });
 });
+
+//유저의 품종 , 기준치 가져오기
+app.get('/user/plant-types', authenticateToken, async (req, res) => {
+  console.log('✅ 이건 찍히는가?');
+  const userId = req.user.userId;  // JWT에서 사용자 ID 가져오기
+
+  try {
+    // 사용자별 식물 품종 및 환경 설정 가져오기
+    const result = await pool.query(`
+      SELECT plant_name, temperature_optimal, humidity_optimal, soil_moisture_optimal
+      FROM user_plants
+      WHERE user_id = $1
+    `, [userId]);
+
+    // 쿼리 결과 로깅
+    console.log('Query result rows:', result.rows);
+
+    if (result.rows.length > 0) {
+      // 품종 목록과 환경 설정 정보 반환
+      const plantTypes = result.rows.map(row => ({
+        plantName: row.plant_name,
+        temperature: row.temperature_optimal,
+        humidity: row.humidity_optimal,
+        soilMoisture: row.soil_moisture_optimal
+      }));
+
+      // 로깅: 최종적으로 반환할 데이터
+      console.log('Plant Types:', plantTypes);
+
+      res.json({ success: true, plantTypes });
+    } else {
+      res.json({ success: false, message: '등록된 식물이 없습니다.' });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+
+//환결 설정 저장
+app.post('/user/environment-settings', authenticateToken, async (req, res) => {
+  const { plantName, temperature, humidity, soilMoisture } = req.body;
+  const userId = req.user.userId;  // JWT에서 사용자 ID 가져오기
+
+  try {
+    // 사용자에 해당하는 식물의 환경 설정을 업데이트
+    const result = await pool.query(`
+      UPDATE user_plants
+      SET temperature_optimal = $1, humidity_optimal = $2, soil_moisture_optimal = $3
+      WHERE user_id = $4 AND plant_name = $5
+      RETURNING *
+    `, [temperature, humidity, soilMoisture, userId, plantName]);
+
+    if (result.rows.length > 0) {
+      return res.json({ success: true, message: '환경 설정이 저장되었습니다.' });
+    } else {
+      return res.json({ success: false, message: '환경 설정 저장에 실패했습니다.' });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
 
 // 서버 실행
 app.listen(PORT, () => {
