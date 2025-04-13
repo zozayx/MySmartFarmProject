@@ -8,6 +8,7 @@ import HomePage from "./pages/HomePage"; // ✅ 홈페이지 추가
 import BoardPage from "./pages/BoardPage";
 import WritePostPage from "./pages/WritePostPage";
 import PostDetailPage from "./pages/PostDetailPage";
+import EditPostPage from './pages/EditPostPage';
 
 import HomeNavbar from "./components/HomeNavbar";
 import UserNavbar from "./components/UserNavbar";
@@ -58,6 +59,7 @@ function App() {
         <Route path="/board" element={<BoardPage />} />
         <Route path="/board/write" element={userRole ? <WritePostPage /> : <Navigate to="/login" />} />
         <Route path="/board/:id" element={userRole ? <PostDetailPage /> : <Navigate to="/login" />} />
+        <Route path="/edit/post/:id" element={userRole ? <EditPostPage /> : <Navigate to="/login" />} />
 
         {/* ✅ 로그인 */}
         <Route path="/login" element={<LoginPage setUserRole={setUserRole} />} />

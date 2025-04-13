@@ -6,7 +6,9 @@ const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const cookieParser = require('cookie-parser');
 const moment = require('moment');
+const multer = require('multer');
 const path = require('path');
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,6 +21,37 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// 업로드된 파일을 클라이언트에서 접근할 수 있도록 설정
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// 파일 업로드 설정
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "uploads"));  // 여기만 바꿈
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  const filetypes = /jpeg|jpg|png|gif/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
+
+  if (extname && mimetype) {
+    return cb(null, true);
+  } else {
+    cb(new Error('이미지 파일만 업로드할 수 있습니다.'));
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }  // 5MB 제한
+});
 
 // PostgreSQL 연결 설정
 const pool = new Pool({
@@ -36,6 +69,7 @@ pool.connect()
     console.error('❌ PostgreSQL 연결 실패', err);
   });
 
+  
   // JWT 인증 미들웨어 추가 (✅ 이 부분 추가!)
 function authenticateToken(req, res, next) {
   const token = req.cookies?.token;
@@ -115,7 +149,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// ✅ 자동 로그인
+// ✅ 자동 로그인 및 사용자 정보 반환
 app.get('/me', async (req, res) => {
   const token = req.cookies.token;
   console.log('[자동 로그인 검사]');
@@ -127,7 +161,7 @@ app.get('/me', async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const result = await pool.query('SELECT role FROM users WHERE user_id = $1', [decoded.userId]);
+    const result = await pool.query('SELECT user_id, role FROM users WHERE user_id = $1', [decoded.userId]);
 
     if (result.rows.length === 0) {
       console.log('[자동 로그인 실패] 사용자 없음');
@@ -135,7 +169,7 @@ app.get('/me', async (req, res) => {
     }
 
     console.log('[자동 로그인 성공]', { userId: decoded.userId });
-    res.json({ success: true, role: result.rows[0].role });
+    res.json({ success: true, userId: decoded.userId, role: result.rows[0].role });
 
   } catch (err) {
     console.error('[자동 로그인 오류]', err);
@@ -311,7 +345,6 @@ app.post('/watering/toggle', (req, res) => {
 
 //유저의 품종 , 기준치 가져오기
 app.get('/user/plant-types', authenticateToken, async (req, res) => {
-  console.log('✅ 이건 찍히는가?');
   const userId = req.user.userId;  // JWT에서 사용자 ID 가져오기
 
   try {
@@ -322,9 +355,6 @@ app.get('/user/plant-types', authenticateToken, async (req, res) => {
       WHERE user_id = $1
     `, [userId]);
 
-    // 쿼리 결과 로깅
-    console.log('Query result rows:', result.rows);
-
     if (result.rows.length > 0) {
       // 품종 목록과 환경 설정 정보 반환
       const plantTypes = result.rows.map(row => ({
@@ -333,9 +363,6 @@ app.get('/user/plant-types', authenticateToken, async (req, res) => {
         humidity: row.humidity_optimal,
         soilMoisture: row.soil_moisture_optimal
       }));
-
-      // 로깅: 최종적으로 반환할 데이터
-      console.log('Plant Types:', plantTypes);
 
       res.json({ success: true, plantTypes });
     } else {
@@ -348,7 +375,7 @@ app.get('/user/plant-types', authenticateToken, async (req, res) => {
 });
 
 
-//환결 설정 저장
+//내 농장 설정 저장
 app.post('/user/environment-settings', authenticateToken, async (req, res) => {
   const { plantName, temperature, humidity, soilMoisture } = req.body;
   const userId = req.user.userId;  // JWT에서 사용자 ID 가져오기
@@ -371,6 +398,225 @@ app.post('/user/environment-settings', authenticateToken, async (req, res) => {
     console.error(err);
     return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
   }
+});
+
+//게시판 미리보기
+app.get("/board/posts", async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT p.post_id, p.title, p.plant_type, p.created_at, u.nickname AS author
+      FROM board_posts p
+      JOIN users u ON p.user_id = u.user_id
+      ORDER BY p.created_at DESC
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("게시글 불러오기 실패:", err);
+    res.status(500).json({ message: "서버 오류로 게시글을 불러오지 못했습니다." });
+  } finally {
+    client.release();
+  }
+});
+
+// 게시글 상세 정보 + 댓글 조회
+app.get("/board/posts/:id", async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+
+    // 게시글 가져오기
+    const postResult = await client.query(`
+      SELECT p.post_id, p.title, p.content, p.plant_type, p.created_at, u.nickname AS author
+      FROM board_posts p
+      JOIN users u ON p.user_id = u.user_id
+      WHERE p.post_id = $1
+    `, [id]);
+
+    if (postResult.rows.length === 0) {
+      return res.status(404).json({ message: "게시글을 찾을 수 없습니다." });
+    }
+
+    const post = postResult.rows[0];
+
+    // 댓글 가져오기
+    const commentResult = await client.query(`
+      SELECT c.comment_id, c.comment, c.commented_at, u.nickname AS author
+      FROM board_comments c
+      JOIN users u ON c.user_id = u.user_id
+      WHERE c.post_id = $1
+      ORDER BY c.commented_at ASC
+    `, [id]);
+
+    const comments = commentResult.rows;
+
+    res.json({ post, comments });
+  } catch (err) {
+    console.error("게시글 상세 조회 실패:", err);
+    res.status(500).json({ message: "서버 오류로 게시글을 불러오지 못했습니다." });
+  } finally {
+    client.release();
+  }
+});
+
+
+// 2. 게시글 수정
+app.put('/board/posts/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { title, content, plant_type } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const postResult = await pool.query('SELECT * FROM board_posts WHERE post_id = $1', [id]);
+    if (postResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const post = postResult.rows[0];
+    if (post.user_id !== userId) {
+      return res.status(403).json({ message: 'You are not the author of this post' });
+    }
+
+    // 게시글 수정
+    await pool.query(
+      'UPDATE board_posts SET title = $1, content = $2, plant_type = $3 WHERE post_id = $4',
+      [title, content, plant_type, id]
+    );
+    res.json({ message: 'Post updated successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// 2. 게시글 삭제
+app.delete('/board/posts/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.userId;
+  try {
+    // 게시글의 작성자만 삭제할 수 있도록 체크
+    const postResult = await pool.query('SELECT * FROM board_posts WHERE post_id = $1', [id]);
+    if (postResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const post = postResult.rows[0];
+    if (post.user_id !== userId) {
+      return res.status(403).json({ message: 'You are not the author of this post' });
+    }
+
+    // 댓글도 함께 삭제
+    await pool.query('DELETE FROM board_comments WHERE post_id = $1', [id]);
+    await pool.query('DELETE FROM board_posts WHERE post_id = $1', [id]);
+    res.json({ message: 'Post deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 로그인된 사용자 정보 가져오기 (게시글 본인 인증)
+app.get('/board/me', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    // 'id'를 'user_id'로 수정
+    const result = await pool.query('SELECT user_id, nickname FROM users WHERE user_id = $1', [userId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ user: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+} );
+
+// 댓글 추가 API
+app.post("/board/posts/:id/comments", authenticateToken, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const { comment } = req.body;
+
+    if (!comment.trim()) {
+      return res.status(400).json({ message: "댓글 내용을 입력해주세요." });
+    }
+
+    const userId = req.user.userId;
+
+    if (!userId) {
+      return res.status(400).json({ message: "사용자 정보가 없습니다." });
+    }
+
+    // 댓글 추가
+    const result = await client.query(`
+      INSERT INTO board_comments (post_id, user_id, comment, commented_at)
+      VALUES ($1, $2, $3, NOW())
+      RETURNING comment_id, comment, commented_at, user_id
+    `, [id, userId, comment]);
+
+    // 닉네임 가져오기
+    const userResult = await client.query(`
+      SELECT nickname FROM users WHERE user_id = $1
+    `, [userId]);
+
+    const newComment = {
+      ...result.rows[0],
+      author: userResult.rows[0].nickname  // nickname을 author 키로 함께 반환
+    };
+
+    res.json({ newComment });
+  } catch (err) {
+    console.error("댓글 추가 실패:", err);
+    res.status(500).json({ message: "서버 오류로 댓글을 추가하지 못했습니다." });
+  } finally {
+    client.release();
+  }
+});
+
+app.post('/posts/upload-images', upload.array('images'), (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ success: false, message: '이미지 파일을 업로드해주세요.' });
+  }
+
+  const imageUrls = req.files.map(file => `/uploads/${file.filename}`);  // 저장된 이미지 URL 리스트
+  res.json({ success: true, imageUrls });
+});
+
+// 게시글 작성 API (이미지 업로드 포함)
+app.post("/write/posts", authenticateToken, upload.array("images", 5), async (req, res) => {
+  const uploadedFiles = req.files;  // 업로드된 파일들
+
+  const { title, content, plant_type } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({ message: "제목과 내용을 입력해주세요." });
+  }
+
+  try {
+    // 이미지 URL을 배열로 만들어 게시글에 추가
+    const imageUrls = uploadedFiles.map(file => `/uploads/${file.filename}`);
+
+    // 게시글 DB에 저장 (이 예시는 실제 DB 저장 부분으로 대체)
+    const result = await pool.query(`
+      INSERT INTO board_posts (user_id, title, content, plant_type, images)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING post_id, title, content, plant_type, images
+    `, [req.user.userId, title, content, plant_type, imageUrls]);
+
+    const newPost = result.rows[0];
+    res.status(201).json({ newPost });
+  } catch (err) {
+    console.error("게시글 작성 실패:", err);
+    res.status(500).json({ message: "서버 오류로 게시글을 작성하지 못했습니다." });
+  }
+});
+
+
+// 서버 실행
+app.listen(PORT, () => {
+  console.log(`서버가 ${PORT}에서 실행 중...`);
 });
 
 
