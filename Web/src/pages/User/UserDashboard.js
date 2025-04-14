@@ -81,7 +81,7 @@ function UserDashboard() {
 
   return (
     <Container className="py-5">
-      <h2 className="text-center fw-bold text-success mb-4">🌿 사용자 대시보드</h2>
+      <h2 className="text-center fw-bold text-success mb-4">내 스마트팜 상태 보기</h2>
 
       {/* 작물 정보 */}
       {(data.crop || data.plantedAt) && (
@@ -89,7 +89,7 @@ function UserDashboard() {
           <Col>
             <Card className="text-center shadow-sm">
               <Card.Body>
-                <h5 className="fw-bold text-primary">🪴 내 작물 정보</h5>
+                <h5 className="fw-bold text-primary">키우는 작물 정보</h5>
                 {data.crop && <p>품종: <strong>{data.crop}</strong></p>}
                 {data.plantedAt && (
                   <p>
@@ -150,7 +150,7 @@ function UserDashboard() {
           <Col md={4}>
             <Card className="shadow-sm">
               <Card.Body>
-                <h6 className="text-success">📈 온도 변화</h6>
+                <h6 className="text-success">📈 온도 변화 (최근 24시간)</h6>
                 <Line
                   data={chartConfig("온도(°C)", temperatureData, {
                     border: "rgba(255, 99, 132, 0.8)",
@@ -164,7 +164,7 @@ function UserDashboard() {
           <Col md={4}>
             <Card className="shadow-sm">
               <Card.Body>
-                <h6 className="text-warning">💦 습도 변화</h6>
+                <h6 className="text-warning">💦 습도 변화 (최근 24시간)</h6>
                 <Line
                   data={chartConfig("습도(%)", humidityData, {
                     border: "rgba(54, 162, 235, 0.8)",
@@ -178,7 +178,7 @@ function UserDashboard() {
           <Col md={4}>
             <Card className="shadow-sm">
               <Card.Body>
-                <h6 className="text-primary">🌱 토양 수분 변화</h6>
+                <h6 className="text-primary">🌱 토양 수분 변화 (최근 24시간)</h6>
                 <Line
                   data={chartConfig("토양 수분(%)", moistureData, {
                     border: "rgba(75, 192, 192, 0.8)",
