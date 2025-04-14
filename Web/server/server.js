@@ -65,14 +65,10 @@ app.post('/signup', async (req, res) => {
       [email, hashedPassword, user_name, nickname, farmLocationValue]
     );
 
-    const user = result.rows[0];
-    const token = jwt.sign({ userId: user.user_id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    console.log('[회원가입 성공]', { userId: result.rows[0].user_id });
 
-    console.log('[회원가입 성공]', { userId: user.user_id, role: user.role });
-
-    res
-      .cookie('token', token, { httpOnly: true, sameSite: 'Lax', maxAge: 7 * 24 * 60 * 60 * 1000 })
-      .json({ success: true, role: user.role });
+    // ❌ JWT 발급 및 쿠키 설정은 생략
+    res.json({ success: true, message: '회원가입 성공! 이제 로그인 해주세요.' });
 
   } catch (err) {
     console.error('[회원가입 오류]', err);
@@ -94,8 +90,8 @@ app.post('/login', async (req, res) => {
     }
 
     const user = result.rows[0];
-    //const isMatch = await bcrypt.compare(password, user.password);
-    const isMatch = password === user.password;
+    const isMatch = await bcrypt.compare(password, user.password);
+    //const isMatch = password === user.password;
     
     if (!isMatch) {
       console.log('[로그인 실패] 비밀번호 불일치');
