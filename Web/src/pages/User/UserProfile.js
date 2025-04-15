@@ -13,7 +13,6 @@ function ProfilePage() {
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState('');
 
-  // 프로필 정보 가져오기
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -22,15 +21,11 @@ function ProfilePage() {
           credentials: 'include',
         });
 
-        if (!response.ok) {
-          const result = await response.json();
-          throw new Error(result.message || '프로필 정보를 불러오지 못했습니다.');
-        }
+        if (!response.ok) throw new Error('프로필 정보를 불러오지 못했습니다.');
 
         const data = await response.json();
         setUserInfo(data);
       } catch (err) {
-        console.error(err);
         setError(err.message);
       }
     };
@@ -38,7 +33,6 @@ function ProfilePage() {
     fetchUserProfile();
   }, []);
 
-  // 수정 모달 열기 시 기존 정보 채우기
   const handleOpenModal = () => {
     if (userInfo) {
       setNickname(userInfo.nickname || '');
@@ -50,37 +44,39 @@ function ProfilePage() {
     setShowModal(true);
   };
 
-  // 프로필 수정 제출
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setError('');
-  
+
     const payload = {};
     const nicknameChanged = nickname !== userInfo.nickname;
     const locationChanged = farmLocation !== userInfo.farm_location;
     const newPwEntered = newPassword.trim() !== '';
     const currentPwEntered = currentPassword.trim() !== '';
-  
-    // 닉네임이나 농장 위치 변경
+
     if (nicknameChanged) payload.nickname = nickname;
     if (locationChanged) payload.farm_location = farmLocation;
-  
-    // 새 비밀번호 입력 시 현재 비밀번호 필수
-    if (newPwEntered) {
-      if (!currentPwEntered) {
-        setError('새 비밀번호를 변경하려면 현재 비밀번호를 입력해야 합니다.');
-        return;
-      }
+
+    if (newPwEntered && !currentPwEntered) {
+      setError('새 비밀번호를 변경하려면 현재 비밀번호를 입력해야 합니다.');
+      return;
+    }
+
+    if (currentPwEntered && !newPwEntered) {
+      setError('비밀번호를 변경하시려면 새 비밀번호를 입력하셔야 합니다.');
+      return;
+    }
+
+    if (newPwEntered && currentPwEntered) {
       payload.current_password = currentPassword;
       payload.new_password = newPassword;
     }
-  
-    // 아무 것도 안 바꿨을 경우
+
     if (Object.keys(payload).length === 0) {
       setError('변경된 항목이 없습니다.');
       return;
     }
-  
+
     try {
       const response = await fetch(`${BASE_URL}/user/profile`, {
         method: 'PUT',
@@ -88,17 +84,22 @@ function ProfilePage() {
         credentials: 'include',
         body: JSON.stringify(payload),
       });
-  
+
       if (!response.ok) {
         const result = await response.json();
         throw new Error(result.message || '프로필 수정에 실패했습니다.');
       }
-  
+
+      const updatedProfile = await fetch(`${BASE_URL}/user/profile`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const updatedData = await updatedProfile.json();
+      setUserInfo(updatedData);
       setShowModal(false);
       alert('프로필이 성공적으로 수정되었습니다.');
-      window.location.reload();
     } catch (err) {
-      console.error(err);
       setError(err.message);
     }
   };
@@ -121,7 +122,6 @@ function ProfilePage() {
         </Card.Body>
       </Card>
 
-      {/* 프로필 수정 모달 */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>프로필 수정</Modal.Title>
@@ -148,23 +148,23 @@ function ProfilePage() {
             </Form.Group>
 
             <Form.Group className="mb-3">
-            <Form.Label>현재 비밀번호</Form.Label>
-            <Form.Control
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="새 비밀번호 입력 시에만 필요"
-            />
-          </Form.Group>
+              <Form.Label>현재 비밀번호</Form.Label>
+              <Form.Control
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="새 비밀번호 입력 시에만 필요"
+              />
+            </Form.Group>
 
-          <Form.Group className="mb-3">
-            <Form.Label>새 비밀번호 (선택)</Form.Label>
-            <Form.Control
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-          </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>새 비밀번호 (선택)</Form.Label>
+              <Form.Control
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </Form.Group>
 
             <Button variant="success" type="submit">
               수정하기
