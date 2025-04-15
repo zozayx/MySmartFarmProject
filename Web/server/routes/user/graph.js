@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../../middleware/authenticateToken');
 const pool = require('../../db');
 const moment = require('moment');
 
 // ✅ User의 환경 그래프
-router.get('/user/sensor-data', authenticateToken, async (req, res) => {
+router.get('/user/sensor-data', async (req, res) => {
   const userId = req.user.userId; // authenticateToken 미들웨어에서 userId 추출
   const { timeFrame } = req.query;
 

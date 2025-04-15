@@ -50,7 +50,7 @@ router.get("/board/posts", async (req, res) => {
   
       // 게시글 가져오기
       const postResult = await client.query(`
-        SELECT p.post_id, p.title, p.content, p.plant_type, p.created_at, u.nickname AS author
+        SELECT p.post_id, p.title, p.content, p.plant_type, p.created_at, u.nickname , u.user_id
         FROM board_posts p
         JOIN users u ON p.user_id = u.user_id
         WHERE p.post_id = $1
@@ -81,5 +81,5 @@ router.get("/board/posts", async (req, res) => {
       client.release();
     }
   });
-  
+
   module.exports = router;

@@ -1,10 +1,9 @@
 const express = require('express');
-const router = express.Router();
-const { authenticateToken } = require('../../middleware/authenticateToken');  // JWT 인증 미들웨어
+const router = express.Router(); // JWT 인증 미들웨어
 const pool = require('../../db');
 
 //유저의 품종 , 기준치 가져오기
-router.get('/user/plant-types', authenticateToken, async (req, res) => {
+router.get('/user/plant-types', async (req, res) => {
     const userId = req.user.userId;  // JWT에서 사용자 ID 가져오기
   
     try {
@@ -36,7 +35,7 @@ router.get('/user/plant-types', authenticateToken, async (req, res) => {
   
   
   //내 농장 설정 저장
-router.post('/user/environment-settings', authenticateToken, async (req, res) => {
+router.post('/user/environment-settings', async (req, res) => {
     const { plantName, temperature, humidity, soilMoisture } = req.body;
     const userId = req.user.userId;  // JWT에서 사용자 ID 가져오기
 

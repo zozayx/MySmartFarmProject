@@ -1,10 +1,11 @@
 const express = require('express');
 const path = require('path');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const cookieParser = require('cookie-parser'); // 추가
-const pool = require('./db');
+const cookieParser = require('cookie-parser');
+
+// 환경변수 설정
+dotenv.config();
 
 const { authenticateToken } = require('./middleware/authenticateToken.js');
 
@@ -18,8 +19,6 @@ const graphRouter = require('./routes/user/graph.js');
 const profileRouter = require('./routes/user/profile.js');
 const postRouter = require('./routes/user/post.js');
 
-// 환경변수 설정
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

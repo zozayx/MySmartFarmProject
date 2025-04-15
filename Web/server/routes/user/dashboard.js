@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../../middleware/authenticateToken');
 const pool = require('../../db');
 
 // ✅ User의 대시보드
-router.get('/user/dashboard', authenticateToken, async (req, res) => {
+router.get('/user/dashboard',async (req, res) => {
     const userId = req.user.userId;
   
     try {

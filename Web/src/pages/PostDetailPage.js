@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom"; // useHistory -> useNavigate로 변경
 import { useState, useEffect } from "react";
-import { Container, Card, Form, Button, ListGroup } from "react-bootstrap";
+import { Container, Card, Form, Button, ListGroup, Spinner } from "react-bootstrap";
 import moment from "moment";
 import "moment/locale/ko";
 
@@ -13,9 +13,9 @@ function PostDetailPage() {
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
   const [user, setUser] = useState(null); // 로그인된 사용자 정보
-
+  const [loading, setLoading] = useState(true); // 로딩 상태 추가
+  
   useEffect(() => {
-    // 로그인된 사용자 정보 가져오기 (예: 쿠키나 로컬스토리지에서)
     const fetchUser = async () => {
       const res = await fetch(`${BASE_URL}/board/me`, {
         credentials: "include",
@@ -23,7 +23,7 @@ function PostDetailPage() {
       const data = await res.json();
       setUser(data.user); // 로그인된 사용자 정보
     };
-
+  
     const fetchPostDetail = async () => {
       try {
         const res = await fetch(`${BASE_URL}/board/posts/${id}`);
@@ -32,13 +32,15 @@ function PostDetailPage() {
         setComments(data.comments || []);
       } catch (err) {
         console.error("게시글 불러오기 실패:", err);
+      } finally {
+        setLoading(false); // 로딩 완료
       }
     };
-
+  
     fetchUser();
     fetchPostDetail();
   }, [id]);
-
+  
   const handleAddComment = async () => {
     if (!comment.trim()) return;
 
@@ -106,6 +108,15 @@ function PostDetailPage() {
     return posted.format("YYYY.MM.DD HH:mm");
   };
 
+  if (loading) {
+    return (
+      <Container className="py-5 d-flex justify-content-center align-items-center" style={{ height: '80vh' }}>
+        <Spinner animation="border" variant="success" />
+        <span className="ms-3">로딩 중...</span>
+      </Container>
+    );
+  }
+
   if (!post) {
     return (
       <Container className="py-5">
@@ -114,7 +125,7 @@ function PostDetailPage() {
     );
   }
 
-  const isAuthor = user && user.id === post.user_id; // 현재 사용자와 게시글 작성자가 동일한지 확인
+  const isAuthor = user && user.user_id === post.user_id; // 현재 사용자와 게시글 작성자가 동일한지 확인
 
   return (
     <Container className="py-5">

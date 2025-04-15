@@ -50,8 +50,18 @@ router.post('/login', async (req, res) => {
     }
 
     const user = result.rows[0];
-    //const isMatch = await bcrypt.compare(password, user.password);
-    const isMatch = password === user.password;
+
+    let isMatch = false;
+    if (user.password.startsWith('$2b$')) {
+      // 암호화된 비밀번호일 경우 bcrypt.compare 사용 (테스트용으로 평문 비밀번호 비교도 가능)
+      isMatch = await bcrypt.compare(password, user.password); 
+    } else {
+      // 평문 비밀번호일 경우 바로 비교
+      isMatch = password === user.password;
+    }
+
+    //const isMatch = await bcrypt.compare(password, user.password); 비문
+    //const isMatch = password === user.password; 평문
     
     if (!isMatch) {
       console.log('[로그인 실패] 비밀번호 불일치');

@@ -3,15 +3,15 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
 const authenticateToken = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1];  // Authorization 헤더에서 Bearer 토큰을 추출
+  const token = req.cookies.token;  // ✅ 쿠키에서 토큰을 읽음
 
   if (!token) {
     return res.status(401).json({ message: "토큰이 없습니다." });
   }
 
-  const secretKey = process.env.JWT_SECRET || 'default_secret_key';  // 환경변수가 없으면 기본값 사용
+  const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-  jwt.verify(token, secretKey, (err, user) => {
+  jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) {
       return res.status(403).json({ message: "유효하지 않은 토큰입니다." });
     }

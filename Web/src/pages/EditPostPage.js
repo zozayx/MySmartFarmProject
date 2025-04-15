@@ -34,8 +34,13 @@ function EditPostPage() {
 
     const fetchPlantTypes = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/user/plant-types`);
+        const res = await fetch(`${BASE_URL}/user/plant-types`, {
+          method: "GET",
+          credentials: "include", // 인증 토큰을 자동으로 쿠키에 포함
+        });
+    
         const data = await res.json();
+        
         if (res.ok) {
           setPlantTypes(data.plantTypes);  // 품종 목록 설정
         } else {

@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../../middleware/authenticateToken');
 const bcrypt = require('bcrypt'); // bcrypt 추가
 const pool = require('../../db');
 
 // 사용자 정보 조회 (GET)
-router.get('/user/profile', authenticateToken, async (req, res) => {
+router.get('/user/profile', async (req, res) => {
   const userId = req.user.userId;  // JWT 토큰에서 userId 추출
 
   try {
@@ -52,7 +51,7 @@ router.get('/user/profile', authenticateToken, async (req, res) => {
 });
 
 // 사용자 프로필 수정 (PUT)
-router.put('/user/profile', authenticateToken, async (req, res) => {
+router.put('/user/profile', async (req, res) => {
   const userId = req.user.userId;
   const { nickname, farm_location, current_password, new_password } = req.body;
 

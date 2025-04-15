@@ -3,12 +3,11 @@ const router = express.Router();
 const path = require('path');
 const multer = require('multer');
 const pool = require('../../db');  // 이미 존재하는 데이터베이스 연결 객체
-const { authenticateToken } = require('../../middleware/authenticateToken');
 
 // 파일 업로드 설정
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "uploads"));  // 여기만 바꿈
+    cb(null, path.join(__dirname, '../../uploads'));  // 여기만 바꿈
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
@@ -37,7 +36,7 @@ const upload = multer({
 });
   
 // 2. 게시글 수정
-  router.put('/board/posts/:id', authenticateToken, async (req, res) => {
+  router.put('/board/posts/:id', async (req, res) => {
     const { id } = req.params;
     const { title, content, plant_type } = req.body;
     const userId = req.user.userId;
@@ -66,7 +65,7 @@ const upload = multer({
   });
   
   // 2. 게시글 삭제
-  router.delete('/board/posts/:id', authenticateToken, async (req, res) => {
+  router.delete('/board/posts/:id', async (req, res) => {
     const { id } = req.params;
     const userId = req.user.userId;
     try {
@@ -92,7 +91,7 @@ const upload = multer({
   });
   
   // 로그인된 사용자 정보 가져오기 (게시글 본인 인증)
-  router.get('/board/me', authenticateToken, async (req, res) => {
+  router.get('/board/me', async (req, res) => {
     const userId = req.user.userId;
     try {
       // 'id'를 'user_id'로 수정
@@ -108,7 +107,7 @@ const upload = multer({
   } );
   
   // 댓글 추가 API
-  router.post("/board/posts/:id/comments", authenticateToken, async (req, res) => {
+  router.post("/board/posts/:id/comments", async (req, res) => {
     const client = await pool.connect();
     try {
       const { id } = req.params;
@@ -160,7 +159,7 @@ const upload = multer({
   });
   
   // 게시글 작성 API (이미지 업로드 포함)
-  router.post("/write/posts", authenticateToken, upload.array("images", 5), async (req, res) => {
+  router.post("/write/posts", upload.array("images", 5), async (req, res) => {
     const uploadedFiles = req.files;  // 업로드된 파일들
   
     const { title, content, plant_type } = req.body;
