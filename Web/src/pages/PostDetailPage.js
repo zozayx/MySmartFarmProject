@@ -131,7 +131,7 @@ function PostDetailPage() {
     <Container className="py-5">
       <Card className="mb-4 shadow-sm" style={{ position: "relative" }}>
         <Card.Body>
-          <h4 className="fw-bold text-success">{post.title}</h4>
+        <h4 className="fw-bold text-dark">{post.title}</h4>
           <p className="text-muted">
             작성자: {post.author}
             {post.plant_type && ` · 품종: ${post.plant_type}`}
