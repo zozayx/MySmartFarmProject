@@ -32,17 +32,20 @@ function LoginPage({ setUserRole }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
+    const payload = { email, password };
+    console.log("📦 백엔드로 보내는 로그인 정보:", payload);
+    console.log("타입 체크 🧪 → email:", typeof email, ", password:", typeof password);
+  
     try {
       const response = await fetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // 쿠키 포함
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(payload),
       });
-
+  
       const data = await response.json();
-
+  
       if (data.success) {
         setUserRole(data.role);
         navigate(data.role === "admin" ? "/admin" : "/user");

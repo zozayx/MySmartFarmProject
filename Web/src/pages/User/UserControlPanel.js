@@ -11,7 +11,7 @@ import {
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function UserControlPanel() {
-  const [lightStatus, setLightStatus] = useState("OFF");
+  const [ledStatus, setLedstatus] = useState("OFF");
   const [fanStatus, setFanStatus] = useState("OFF");
   const [waterStatus, setWaterStatus] = useState("OFF");
 
@@ -25,7 +25,7 @@ function UserControlPanel() {
     // 장치 상태 가져오기
     fetch(`${BASE_URL}/light/status`)
       .then((res) => res.json())
-      .then((data) => setLightStatus(data.lightStatus))
+      .then((data) => setLedstatus(data.ledStatus))
       .catch(() => setLightErrorMessage("⚠️ 전구 상태 불러오기 실패"));
 
     fetch(`${BASE_URL}/fan/status`)
@@ -39,40 +39,19 @@ function UserControlPanel() {
       .catch(() => setWaterErrorMessage("⚠️ 급수 상태 불러오기 실패"));
   }, []);
 
-  useEffect(() => {
-    const fetchSensorData = () => {
-      fetch(`${BASE_URL}/actuator/led/status`)
-        .then((res) => {
-          if (!res.ok) {
-            return;
-          }
-          return res.json();
-        })
-        .then((data) => {
-          setSensorData(data.sensorData);
-        })
-        .catch((err) => {
-          setSensorData(null);
-        });
-    };
-  
-    fetchSensorData();
-    const interval = setInterval(fetchSensorData, 1000);
-    return () => clearInterval(interval);
-  }, []);
-  
+  //snesordata
 
   const toggleLight = () => {
     setLightErrorMessage("");
-    const newStatus = lightStatus === "ON" ? "OFF" : "ON";
+    const newStatus = ledStatus === "ON" ? "OFF" : "ON";
 
-    fetch(`${BASE_URL}/light/toggle`, {
+    fetch(`${BASE_URL}/actuator/led/control`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lightStatus: newStatus }),
+      body: JSON.stringify({ ledStatus: newStatus }),
     })
       .then((res) => res.json())
-      .then((data) => setLightStatus(data.lightStatus))
+      .then((data) => setLedstatus(data.ledStatus))
       .catch(() => setLightErrorMessage("⚠️ 전구 제어 실패"));
   };
 
@@ -80,7 +59,7 @@ function UserControlPanel() {
     setFanErrorMessage("");
     const newStatus = fanStatus === "ON" ? "OFF" : "ON";
 
-    fetch(`${BASE_URL}/fan/toggle`, {
+    fetch(`${BASE_URL}/actuator/fan/control`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fanStatus: newStatus }),
@@ -94,7 +73,7 @@ function UserControlPanel() {
     setWaterErrorMessage("");
     const newStatus = waterStatus === "ON" ? "OFF" : "ON";
 
-    fetch(`${BASE_URL}/watering/toggle`, {
+    fetch(`${BASE_URL}/actuator/watering/control`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ wateringStatus: newStatus }),
@@ -114,21 +93,21 @@ function UserControlPanel() {
             <Card.Body>
               <h5 className="fw-bold text-primary">조명 제어</h5>
               <div className="display-5 my-2">
-                {lightStatus === "ON" ? (
+                {ledStatus === "ON" ? (
                   <FaLightbulb className="text-warning" />
                 ) : (
                   <FaRegLightbulb style={{ color: "gray" }} />
                 )}
               </div>
               <p className="text-muted">
-                현재 상태: {lightStatus === "ON" ? "켜짐" : "꺼짐"}
+                현재 상태: {ledStatus === "ON" ? "켜짐" : "꺼짐"}
               </p>
               <Button
-                variant={lightStatus === "ON" ? "danger" : "success"}
+                variant={ledStatus === "ON" ? "danger" : "success"}
                 className="fw-bold w-100"
                 onClick={toggleLight}
               >
-                {lightStatus === "ON" ? "전구 끄기" : "전구 켜기"}
+                {ledStatus === "ON" ? "전구 끄기" : "전구 켜기"}
               </Button>
 
               {/* ⚠️ 전구 제어 에러 메시지 */}
