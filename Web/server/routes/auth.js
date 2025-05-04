@@ -72,7 +72,7 @@ router.post('/login', async (req, res) => {
     console.log('[로그인 성공]', { userId: user.user_id, role: user.role });
 
     res
-      .cookie('token', token, { httpOnly: true, sameSite: 'Lax', maxAge: 7 * 24 * 60 * 60 * 1000 })
+      .cookie('token', token, { httpOnly: true, sameSite: 'Lax', maxAge: 7 * 24 * 60 * 60 * 1000 }) //나중에 보안을 위해선 secure: true 해야함 HTTPS 사용
       .json({ success: true, role: user.role });
 
   } catch (err) {

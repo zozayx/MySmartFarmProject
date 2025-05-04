@@ -40,6 +40,7 @@ function LoginPage({ setUserRole }) {
     try {
       const response = await fetch(`${BASE_URL}/login`, {
         method: "POST",
+        //credentials: "include", // 쿠키 포함
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

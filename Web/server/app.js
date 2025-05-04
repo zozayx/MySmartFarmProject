@@ -25,8 +25,8 @@ const PORT = process.env.PORT || 5000;
 
 // 미들웨어 설정
 app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true,
+  origin: true,  // 허용할 IP 주소 , 네트워크 바뀔떄마다 해야함
+  credentials: true,  // 쿠키 포함
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -45,6 +45,6 @@ app.use('/', authenticateToken, profileRouter);
 app.use('/', authenticateToken, postRouter);
 
 // 서버 실행
-app.listen(PORT, () => {
-  console.log(`🌐 서버 실행 중: http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🌐 서버 실행 중: http://0.0.0.0:${PORT}`);
 });

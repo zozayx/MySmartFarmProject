@@ -31,18 +31,19 @@ function UserNavbar({ setUserRole }) {
             method: "POST",
             credentials: "include", // ✅ 쿠키 포함해서 보내야 함
           });
-  
-          sessionStorage.removeItem("userRole"); // 필요하면 유지 or 제거
-          setUserRole(null); // 상태 초기화
-  
+          
+          // 로그아웃 후 팝업 띄우기
           showPopup({
             title: "로그아웃 완료",
             message: "정상적으로 로그아웃되었습니다.",
             buttonText: "확인",
             confirmVariant: "primary",
             onConfirm: () => {
-              navigate("/login");
+              // 팝업을 닫은 후 페이지 이동
+              // 상태를 초기화하는 타이밍을 setTimeout으로 약간 지연
+              sessionStorage.removeItem("userRole"); // 필요하면 유지 or 제거
               setTimeout(() => setUserRole(null), 50);
+              navigate("/login");
             },
           });
         } catch (err) {
@@ -83,8 +84,15 @@ function UserNavbar({ setUserRole }) {
             <Nav.Link onClick={() => handleNavClick("/user/control")} className="text-white">
               🛠 제어 센터
             </Nav.Link>
+            {/* 📊 환경 그래프 (현재 숨김 처리) */}
+            {/*
             <Nav.Link onClick={() => handleNavClick("/user/data")} className="text-white">
               📊 환경 그래프
+            </Nav.Link>
+            */}
+            {/* ✅ 실시간 그래프 추가 */}
+            <Nav.Link onClick={() => handleNavClick("/user/realtime-graph")} className="text-white">
+              📈 실시간 그래프
             </Nav.Link>
             <Nav.Link onClick={() => handleNavClick("/env-settings")} className="text-white">
               🌿 내 농장 설정

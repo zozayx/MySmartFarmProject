@@ -18,6 +18,7 @@ import AdminNavbar from "./components/AdminNavbar";
 import UserDashboard from './pages/User/UserDashboard';
 import UserControlPanel from './pages/User/UserControlPanel';
 import DataVisualization from "./pages/User/UserDataVisualization";
+import RealTimeGraph from "./pages/User/UserRealTimeGraph";
 import Settings from "./pages/User/UserSettings";
 import Profile from "./pages/User/UserProfile";
 import Help from "./pages/User/UserHelp";
@@ -73,6 +74,8 @@ function App() {
               <Route path="/user/dashboard" element={<UserDashboard />} />
               <Route path="/user/control" element={<UserControlPanel />} />
               <Route path="/user/data" element={<DataVisualization />} />
+              {/* ✅ 실시간 그래프 추가 */}
+              <Route path="/user/realtime-graph" element={<RealTimeGraph />} />
               <Route path="/env-settings" element={<UserEnvironmentSettings />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/profile" element={<Profile />} />

@@ -11,35 +11,60 @@ import {
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function UserControlPanel() {
-  const [ledStatus, setLedstatus] = useState("OFF");
-  const [fanStatus, setFanStatus] = useState("OFF");
-  const [waterStatus, setWaterStatus] = useState("OFF");
+  const [ledStatus, setLedstatus] = useState("OFF");  // 기본값 "OFF"
+  const [fanStatus, setFanStatus] = useState("OFF");  // 기본값 "OFF"
+  const [waterStatus, setWaterStatus] = useState("OFF");  // 기본값 "OFF"
 
   const [lightErrorMessage, setLightErrorMessage] = useState("");
   const [fanErrorMessage, setFanErrorMessage] = useState("");
   const [waterErrorMessage, setWaterErrorMessage] = useState("");
 
-  const [sensorData, setSensorData] = useState(null); // ✅ 센서 데이터 상태
-
   useEffect(() => {
-    // 장치 상태 가져오기
-    fetch(`${BASE_URL}/light/status`)
+    // LED 상태 가져오기
+    fetch(`${BASE_URL}/led/status`, {
+      method: "GET",
+      //credentials: "include",  // 인증 정보 전송
+    })
       .then((res) => res.json())
-      .then((data) => setLedstatus(data.ledStatus))
-      .catch(() => setLightErrorMessage("⚠️ 전구 상태 불러오기 실패"));
+      .then((data) => {
+        if (data && data.ledStatus) {
+          setLedstatus(data.ledStatus);
+        }
+      })
+      .catch(() => {
+        setLightErrorMessage("");  // 오류 메시지 비우기
+      });
 
-    fetch(`${BASE_URL}/fan/status`)
+    // 팬 상태 가져오기
+    fetch(`${BASE_URL}/fan/status`, {
+      method: "GET",
+      //credentials: "include",  // 인증 정보 전송
+    })
       .then((res) => res.json())
-      .then((data) => setFanStatus(data.fanStatus))
-      .catch(() => setFanErrorMessage("⚠️ 팬 상태 불러오기 실패"));
+      .then((data) => {
+        if (data && data.fanStatus) {
+          setFanStatus(data.fanStatus);
+        }
+      })
+      .catch(() => {
+        setFanErrorMessage("");  // 오류 메시지 비우기
+      });
 
-    fetch(`${BASE_URL}/watering/status`)
+    // 급수 상태 가져오기
+    fetch(`${BASE_URL}/watering/status`, {
+      method: "GET",
+      //credentials: "include",  // 인증 정보 전송
+    })
       .then((res) => res.json())
-      .then((data) => setWaterStatus(data.wateringStatus))
-      .catch(() => setWaterErrorMessage("⚠️ 급수 상태 불러오기 실패"));
+      .then((data) => {
+        if (data && data.wateringStatus) {
+          setWaterStatus(data.wateringStatus);
+        }
+      })
+      .catch(() => {
+        setWaterErrorMessage("");  // 오류 메시지 비우기
+      });
   }, []);
-
-  //snesordata
 
   const toggleLight = () => {
     setLightErrorMessage("");
@@ -48,6 +73,7 @@ function UserControlPanel() {
     fetch(`${BASE_URL}/actuator/led/control`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      //credentials: "include",  // 인증 정보 전송
       body: JSON.stringify({ ledStatus: newStatus }),
     })
       .then((res) => res.json())
@@ -62,6 +88,7 @@ function UserControlPanel() {
     fetch(`${BASE_URL}/actuator/fan/control`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      //credentials: "include",  // 인증 정보 전송
       body: JSON.stringify({ fanStatus: newStatus }),
     })
       .then((res) => res.json())
@@ -76,6 +103,7 @@ function UserControlPanel() {
     fetch(`${BASE_URL}/actuator/watering/control`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      //credentials: "include",  // 인증 정보 전송
       body: JSON.stringify({ wateringStatus: newStatus }),
     })
       .then((res) => res.json())
@@ -110,19 +138,8 @@ function UserControlPanel() {
                 {ledStatus === "ON" ? "전구 끄기" : "전구 켜기"}
               </Button>
 
-              {/* ⚠️ 전구 제어 에러 메시지 */}
               {lightErrorMessage && (
                 <p className="mt-3 text-danger small">{lightErrorMessage}</p>
-              )}
-
-              {/* ✅ 센서 데이터 표시 */}
-              {sensorData ? (
-                <div className="mt-3 small text-muted">
-                  <div>센서값: <strong>{sensorData}</strong></div>
-                  <div>업데이트: {new Date().toLocaleTimeString()}</div> {/* 그냥 클라이언트 시간 */}
-                </div>
-              ) : (
-                <div className="mt-3 small text-muted">📡 센서값을 불러오는 중...</div>
               )}
             </Card.Body>
           </Card>

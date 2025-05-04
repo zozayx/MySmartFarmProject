@@ -1,145 +1,188 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Button } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Container, Row, Col, Card } from "react-bootstrap";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   LineElement,
-  CategoryScale,
-  LinearScale,
   PointElement,
+  LinearScale,
+  CategoryScale,
   Tooltip,
   Legend,
+  Filler,
 } from "chart.js";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
+ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler);
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-function UserDataVisualization() {
-  const [sensorData, setSensorData] = useState([]);
-  const [timeFrame, setTimeFrame] = useState("7days");
-  const [chartHeight, setChartHeight] = useState(100); // 기본 높이 설정
-
-  // 화면 크기에 따른 차트 높이 조정
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth <= 768) { // 모바일 화면 크기
-        setChartHeight(200); // 모바일에서 차트 높이를 200으로 설정
-      } else { // 데스크탑 화면 크기
-        setChartHeight(100); // 데스크탑에서 차트 높이를 100으로 설정
-      }
-    };
-
-    handleResize(); // 초기 화면 크기 설정
-    window.addEventListener("resize", handleResize); // 화면 크기 변경 시 처리
-
-    return () => window.removeEventListener("resize", handleResize); // 컴포넌트 언마운트 시 이벤트 제거
-  }, []); // 빈 배열을 넣어 최초 한 번만 실행되도록 수정
+function RealTimeGraph() {
+  const [humidityData, setHumidityData] = useState([]);
+  const [temperatureData, setTemperatureData] = useState([]);
+  const [cdsData, setCdsData] = useState([]);
+  const [gasData, setGasData] = useState([]);
+  
+  const [labels, setLabels] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const interval = setInterval(async () => {
       try {
-        const response = await fetch(`${BASE_URL}/user/sensor-data?timeFrame=${timeFrame}`, {
-          method: "GET",
-          credentials: "include",  // 쿠키 포함
-        });
-        const data = await response.json();
-        setSensorData(data);
+        const [humidityRes, temperatureRes, cdsRes, gasRes] = await Promise.all([
+          fetch(`${BASE_URL}/sensor/humidity/value`).then(res => res.json()),
+          fetch(`${BASE_URL}/sensor/temperature/value`).then(res => res.json()),
+          fetch(`${BASE_URL}/sensor/cds/value`).then(res => res.json()),
+          fetch(`${BASE_URL}/sensor/gas/value`).then(res => res.json()),
+        ]);
+
+        const now = new Date();
+        const time = now.toLocaleTimeString('ko-KR', { hour12: false });
+
+        setHumidityData(prev => [...prev.slice(-19), humidityRes.value]);
+        setTemperatureData(prev => [...prev.slice(-19), temperatureRes.value]);
+        setCdsData(prev => [...prev.slice(-19), cdsRes.value]);
+        setGasData(prev => [...prev.slice(-19), gasRes.value]);
+
+        setLabels(prev => [...prev.slice(-19), time]);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("데이터 가져오기 실패:", error);
       }
-    };
+    }, 9000);
 
-    fetchData();
-  }, [timeFrame]);
+    return () => clearInterval(interval);
+  }, []);
 
-  const labels = sensorData.map((entry) => entry.date);
-  const temperatures = sensorData.map((entry) => entry.temperature);
-  const humidities = sensorData.map((entry) => entry.humidity);
-  const moistures = sensorData.map((entry) => entry.moisture);
+  // 공통 옵션
+  const commonOptions = (color) => ({
+    responsive: true,
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: color, // y축 숫자 색
+        },
+      },
+      x: {
+        ticks: {
+          color: '#666', // x축 숫자 색 (회색 고정)
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        labels: {
+          color: color, // 가운데 네모+글자 색깔
+          font: {
+            size: 14,
+            weight: 'bold',
+          },
+          padding: 20,
+          boxWidth: 20,
+        },
+        position: 'top',
+        align: 'center',
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: color,
+        borderWidth: 1,
+      },
+    },
+    animation: {
+      duration: 1000,
+      easing: 'easeOutQuart',
+    },
+  });
 
-  const temperatureChart = {
+  const createChartData = (data, label, borderColor, backgroundColor) => ({
     labels,
     datasets: [
       {
-        label: "온도(°C)",
-        data: temperatures,
-        borderColor: "rgba(255, 99, 132, 0.8)",
-        backgroundColor: "rgba(255, 99, 132, 0.2)",
-        tension: 0.3,
+        label,
+        data,
+        borderColor,
+        backgroundColor,
+        tension: 0.4,
+        fill: true,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 3,
       },
     ],
-  };
-
-  const humidityChart = {
-    labels,
-    datasets: [
-      {
-        label: "습도(%)",
-        data: humidities,
-        borderColor: "rgba(54, 162, 235, 0.8)",
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        tension: 0.3,
-      },
-    ],
-  };
-
-  const moistureChart = {
-    labels,
-    datasets: [
-      {
-        label: "토양 수분(%)",
-        data: moistures,
-        borderColor: "rgba(75, 192, 192, 0.8)",
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        tension: 0.3,
-      },
-    ],
-  };
+  });
 
   return (
     <Container className="py-5">
-      <h2 className="text-center text-success fw-bold mb-4">📊 환경 그래프</h2>
-
-      <Row className="mb-4">
-        <Col md={12} className="text-center">
-          <Button
-            variant={timeFrame === "7days" ? "success" : "outline-success"}
-            onClick={() => setTimeFrame("7days")}
-            className="mx-2 btn-lg"
-          >
-            7일 데이터
-          </Button>
-          <Button
-            variant={timeFrame === "30days" ? "success" : "outline-success"}
-            onClick={() => setTimeFrame("30days")}
-            className="mx-2 btn-lg"
-          >
-            30일 데이터
-          </Button>
-        </Col>
-      </Row>
+      <h2 className="text-center text-success fw-bold mb-5">📈 실시간 센서 데이터</h2>
 
       <Row className="mb-4">
         <Col md={12}>
-          <Card className="shadow-sm mb-4">
+          {/* 온도 */}
+          <Card className="shadow rounded-4 mb-5">
             <Card.Body>
-              <h5 className="text-danger mb-3">🌡️ 온도 변화</h5>
-              <Line data={temperatureChart} height={chartHeight} options={{ responsive: true }} />
+              <h5 className="text-danger fw-bold mb-4 fs-4">🌡️ 온도 (°C)</h5>
+              <Line
+                data={createChartData(
+                  temperatureData,
+                  "온도",
+                  "rgba(255, 99, 132, 0.8)",  // border
+                  "rgba(255, 99, 132, 0.2)"   // background
+                )}
+                options={commonOptions("rgba(255, 99, 132, 0.8)")}
+                height={100}
+              />
             </Card.Body>
           </Card>
 
-          <Card className="shadow-sm mb-4">
+          {/* 습도 */}
+          <Card className="shadow rounded-4 mb-5">
             <Card.Body>
-              <h5 className="text-info mb-3">💧 습도 변화</h5>
-              <Line data={humidityChart} height={chartHeight} options={{ responsive: true }} />
+              <h5 className="text-primary fw-bold mb-4 fs-4">💧 습도 (%)</h5>
+              <Line
+                data={createChartData(
+                  humidityData,
+                  "습도",
+                  "rgba(54, 162, 235, 0.8)",
+                  "rgba(54, 162, 235, 0.2)"
+                )}
+                options={commonOptions("rgba(54, 162, 235, 0.8)")}
+                height={100}
+              />
             </Card.Body>
           </Card>
 
-          <Card className="shadow-sm mb-4">
+          {/* 조도 */}
+          <Card className="shadow rounded-4 mb-5">
             <Card.Body>
-              <h5 className="text-teal mb-3">🌱 토양 수분 변화</h5>
-              <Line data={moistureChart} height={chartHeight} options={{ responsive: true }} />
+              <h5 className="text-warning fw-bold mb-4 fs-4">🌞 조도 (lux)</h5>
+              <Line
+                data={createChartData(
+                  cdsData,
+                  "조도",
+                  "rgba(255, 206, 86, 0.8)",
+                  "rgba(255, 206, 86, 0.2)"
+                )}
+                options={commonOptions("rgba(255, 206, 86, 0.8)")}
+                height={100}
+              />
+            </Card.Body>
+          </Card>
+
+          {/* 가스 */}
+          <Card className="shadow rounded-4 mb-5">
+            <Card.Body>
+              <h5 className="text-success fw-bold mb-4 fs-4">🛢️ 가스 (ppm)</h5>
+              <Line
+                data={createChartData(
+                  gasData,
+                  "가스",
+                  "rgba(75, 192, 192, 0.8)",
+                  "rgba(75, 192, 192, 0.2)"
+                )}
+                options={commonOptions("rgba(75, 192, 192, 0.8)")}
+                height={100}
+              />
             </Card.Body>
           </Card>
         </Col>
@@ -148,4 +191,4 @@ function UserDataVisualization() {
   );
 }
 
-export default UserDataVisualization;
+export default RealTimeGraph;

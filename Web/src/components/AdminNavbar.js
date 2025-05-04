@@ -13,7 +13,7 @@ function AdminNavbar({ setUserRole }) {
     navigate(path);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setExpanded(false);
     showPopup({
       title: "로그아웃",
@@ -24,26 +24,33 @@ function AdminNavbar({ setUserRole }) {
       cancelVariant: "danger",
       onConfirm: async () => {
         try {
-          // ✅ 서버에 로그아웃 요청 (쿠키 제거)
           await fetch(`${process.env.REACT_APP_API_BASE_URL}/logout`, {
             method: "POST",
-            credentials: "include", // 쿠키 포함
+            credentials: "include", // ✅ 쿠키 포함해서 보내야 함
+          });
+          
+          // 로그아웃 후 팝업 띄우기
+          showPopup({
+            title: "로그아웃 완료",
+            message: "정상적으로 로그아웃되었습니다.",
+            buttonText: "확인",
+            confirmVariant: "primary",
+            onConfirm: () => {
+              // 팝업을 닫은 후 페이지 이동
+              // 상태를 초기화하는 타이밍을 setTimeout으로 약간 지연
+              sessionStorage.removeItem("userRole"); // 필요하면 유지 or 제거
+              setTimeout(() => setUserRole(null), 50);
+              navigate("/login");
+            },
           });
         } catch (err) {
-          console.error("로그아웃 요청 실패:", err);
+          showPopup({
+            title: "에러",
+            message: "서버와 연결되지 않았습니다.",
+            buttonText: "확인",
+            confirmVariant: "danger",
+          });
         }
-  
-        sessionStorage.removeItem("userRole");
-        showPopup({
-          title: "로그아웃 완료",
-          message: "정상적으로 로그아웃되었습니다.",
-          buttonText: "확인",
-          confirmVariant: "primary",
-          onConfirm: () => {
-            navigate("/login");
-            setTimeout(() => setUserRole(null), 50);
-          },
-        });
       },
     });
   };
