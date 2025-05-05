@@ -18,6 +18,7 @@ const environmentRouter = require('./routes/user/environment.js');
 const graphRouter = require('./routes/user/graph.js');
 const profileRouter = require('./routes/user/profile.js');
 const postRouter = require('./routes/user/post.js');
+const farmManagementRouter = require('./routes/user/farmmanagement.js');
 
 
 const app = express();
@@ -43,6 +44,7 @@ app.use('/', authenticateToken, environmentRouter);
 app.use('/', authenticateToken, graphRouter);
 app.use('/', authenticateToken, profileRouter);
 app.use('/', authenticateToken, postRouter);
+app.use('/', authenticateToken, farmManagementRouter);
 
 // 서버 실행
 app.listen(PORT, '0.0.0.0', () => {

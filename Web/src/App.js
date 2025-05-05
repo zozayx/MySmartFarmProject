@@ -19,10 +19,11 @@ import UserDashboard from './pages/User/UserDashboard';
 import UserControlPanel from './pages/User/UserControlPanel';
 import DataVisualization from "./pages/User/UserDataVisualization";
 import RealTimeGraph from "./pages/User/UserRealTimeGraph";
+import UserEnvironmentSettings from "./pages/User/UserEnvironmentSettings";
+import UserFarmManagement from "./pages/User/UserFarmManagement";
 import Settings from "./pages/User/UserSettings";
 import Profile from "./pages/User/UserProfile";
 import Help from "./pages/User/UserHelp";
-import UserEnvironmentSettings from "./pages/User/UserEnvironmentSettings";
 
 // 어드민 페이지
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -77,6 +78,7 @@ function App() {
               {/* ✅ 실시간 그래프 추가 */}
               <Route path="/user/realtime-graph" element={<RealTimeGraph />} />
               <Route path="/env-settings" element={<UserEnvironmentSettings />} />
+              <Route path="/user/farm-management" element={<UserFarmManagement />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/help" element={<Help />} />

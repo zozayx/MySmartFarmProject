@@ -85,17 +85,21 @@ function UserNavbar({ setUserRole }) {
               🛠 제어 센터
             </Nav.Link>
             {/* 📊 환경 그래프 (현재 숨김 처리) */}
-            {/*
             <Nav.Link onClick={() => handleNavClick("/user/data")} className="text-white">
               📊 환경 그래프
             </Nav.Link>
-            */}
             {/* ✅ 실시간 그래프 추가 */}
-            <Nav.Link onClick={() => handleNavClick("/user/realtime-graph")} className="text-white">
+            {/*
+              <Nav.Link onClick={() => handleNavClick("/user/realtime-graph")} className="text-white">
               📈 실시간 그래프
             </Nav.Link>
+            */}
             <Nav.Link onClick={() => handleNavClick("/env-settings")} className="text-white">
               🌿 내 농장 설정
+            </Nav.Link>
+            {/* 내 농장 관리 링크 추가 */}
+            <Nav.Link onClick={() => handleNavClick("/user/farm-management")} className="text-white">
+              🚜 내 농장 관리
             </Nav.Link>
             <Nav.Link onClick={() => handleNavClick("/board")} className="text-white">
               📋 커뮤니티
