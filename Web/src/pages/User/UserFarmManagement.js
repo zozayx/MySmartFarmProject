@@ -30,7 +30,7 @@ function DeleteButton({ farmId, espId, sensorId, actuatorId, type, onDelete }) {
           } else if (type === 'actuator') {
             deleteUrl = `${BASE_URL}/user/farm/esp/${espId}/actuator/${actuatorId}`;
           }
-
+          
           const response = await fetch(deleteUrl, {
             method: 'DELETE',
             credentials: 'include',
@@ -80,7 +80,7 @@ const UserFarmManagement = () => {
   const [activeModal, setActiveModal] = useState(null); // 어떤 모달이 열려있는지 추적
   const [newEspName, setNewEspName] = useState("");  // ESP 이름 상태
   const [newEspIp, setNewEspIp] = useState("");  // ESP IP 주소 상태
-  const [newEspSerial, setNewEspSerial] = useState('');  // 새 상태 변수 추가
+  const [submitted, setSubmitted] = useState(false);
   const [farmId, setFarmId] = useState(null); // farmId 상태 추가
   const [deviceType, setDeviceType] = useState('sensor');  // 장치 타입 (sensor / actuator)
   const [sensorType, setSensorType] = useState('');  // 센서 타입
@@ -88,6 +88,9 @@ const UserFarmManagement = () => {
   const [deviceName, setDeviceName] = useState('');  // 장치 이름
   const [gpioPin, setGpioPin] = useState(4);  // GPIO 핀 번호
   const [espId, setEspId] = useState(null);
+
+  // IP랑 Serial 번호 형식
+  const isValidIp = (ip) => /^(\d{1,3}\.){3}\d{1,3}$/.test(ip);
 
   // GPIO 핀 번호 선택을 위한 핀 번호 리스트
   const gpioPins = [4, 5, 13, 14, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33];
@@ -161,16 +164,22 @@ const UserFarmManagement = () => {
     setFarmId(farmId); // farmId 상태를 업데이트
     setNewEspName("");  // 이름 초기화
     setNewEspIp("");  // IP 초기화
-    setNewEspSerial('');  // 시리얼 번호 초기화
     setActiveModal('addEsp');  // ESP 추가 모달 열기
   }
 
   // ESP 추가 API 호출
   const handleAddEspSubmit = () => {
+    
+    setSubmitted(true); // 제출 버튼 눌림 표시
+
+    // 유효성 검사: 입력값이 없거나 형식이 틀리면 중단
+    if (!newEspName || !newEspIp ||  !isValidIp(newEspIp) ) {
+      return; // 유효하지 않으면 API 호출하지 않음
+    }
+
     const newEspData = {
       esp_name: newEspName,
       ip_address: newEspIp,
-      serial_number: newEspSerial,
     };
 
     fetch(`${BASE_URL}/user/farm/${farmId}/esp`, {
@@ -184,6 +193,9 @@ const UserFarmManagement = () => {
       .then(response => {
         if (response.status === 201) {
           alert('ESP가 추가되었습니다!');
+          setNewEspName(''); // 입력값 초기화
+          setNewEspIp('');
+          setSubmitted(false); // 제출 상태 초기화
           setActiveModal(null); // 모달 닫기
           refreshFarms();  // 농장 정보 갱신
         } else {
@@ -214,9 +226,19 @@ const UserFarmManagement = () => {
 
   // 장치 추가 제출
   const handleAddDeviceSubmit = () => {
+    setSubmitted(true);
+
+    if (
+      !deviceName ||
+      (deviceType === 'sensor' && !sensorType) ||
+      (deviceType === 'actuator' && !actuatorType)
+    ) {
+      return; // 입력이 부족하면 중단
+    }
+
     const newDeviceData = {
       device_name: deviceName,
-      gpio_pin: gpioPin,
+      gpio_pin: parseInt(gpioPin, 10),
       deviceType: deviceType,
     };
 
@@ -335,46 +357,47 @@ const UserFarmManagement = () => {
       {/* ESP 추가 모달 */}
       {activeModal === 'addEsp' && (
           <Modal show={true} onHide={handleCloseModal} centered>
-              <Modal.Header closeButton>
-                  <Modal.Title>ESP 추가</Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                  <div className="mb-3">
-                      <label htmlFor="espName" className="form-label">ESP 이름</label>
-                      <input
-                          type="text"
-                          className="form-control"
-                          id="espName"
-                          value={newEspName}
-                          onChange={(e) => setNewEspName(e.target.value)}
-                      />
-                  </div>
-                  <div className="mb-3">
-                      <label htmlFor="espIp" className="form-label">IP 주소</label>
-                      <input
-                          type="text"
-                          className="form-control"
-                          id="espIp"
-                          value={newEspIp}
-                          onChange={(e) => setNewEspIp(e.target.value)}
-                      />
-                  </div>
-                  <div className="mb-3">
-                      <label htmlFor="espSerial" className="form-label">시리얼 번호</label>
-                      <input
-                          type="text"
-                          className="form-control"
-                          id="espSerial"
-                          value={newEspSerial}
-                          onChange={(e) => setNewEspSerial(e.target.value)}
-                      />
-                  </div>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button variant="success" onClick={handleAddEspSubmit}>추가</Button>
-                <Button variant="secondary" onClick={handleCloseModal}>취소</Button>
-              </Modal.Footer>
-          </Modal>
+          <Modal.Header closeButton>
+            <Modal.Title>ESP 추가</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className="mb-3">
+              <label htmlFor="espName" className="form-label">ESP 이름</label>
+              <input
+                type="text"
+                className={`form-control ${submitted && !newEspName ? 'is-invalid' : ''}`}
+                id="espName"
+                placeholder="예: 온실 앞문 ESP1"
+                value={newEspName}
+                onChange={(e) => setNewEspName(e.target.value)}
+              />
+              {submitted && !newEspName && (
+                <div className="invalid-feedback">이름을 입력해주세요.</div>
+              )}
+            </div>
+            <div className="mb-3">
+              <label htmlFor="espIp" className="form-label">IP 주소</label>
+              <input
+                type="text"
+                className={`form-control ${submitted && (!newEspIp || !isValidIp(newEspIp)) ? 'is-invalid' : ''}`}
+                id="espIp"
+                placeholder="예: 192.168.0.100"
+                value={newEspIp}
+                onChange={(e) => setNewEspIp(e.target.value)}
+              />
+              {submitted && !newEspIp && (
+                <div className="invalid-feedback">IP 주소를 입력해주세요.</div>
+              )}
+              {submitted && newEspIp && !isValidIp(newEspIp) && (
+                <div className="invalid-feedback">올바른 IP 주소 형식으로 입력해주세요. (예: 192.168.0.100)</div>
+              )}
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="success" onClick={handleAddEspSubmit}>추가 및 연결</Button>
+            <Button variant="secondary" onClick={handleCloseModal}>취소</Button>
+          </Modal.Footer>
+        </Modal>  
       )}
 
       {/* 장치 추가 모달 UI*/}
@@ -399,39 +422,47 @@ const UserFarmManagement = () => {
 
                   {deviceType === 'sensor' && (
                       <div className="mb-3">
-                          <label htmlFor="sensorType" className="form-label">센서 타입</label>
-                          <input
-                              type="text"
-                              className="form-control"
-                              id="sensorType"
-                              value={sensorType}
-                              onChange={(e) => setSensorType(e.target.value)}
-                          />
+                        <label htmlFor="sensorType" className="form-label">센서 타입</label>
+                        <input
+                          type="text"
+                          className={`form-control ${submitted && !sensorType ? 'is-invalid' : ''}`}
+                          id="sensorType"
+                          value={sensorType}
+                          onChange={(e) => setSensorType(e.target.value)}
+                        />
+                        {submitted && !sensorType && (
+                          <div className="invalid-feedback">센서 타입을 입력해주세요.</div>
+                        )}
                       </div>
-                  )}
-
+                    )}
                   {deviceType === 'actuator' && (
                       <div className="mb-3">
-                          <label htmlFor="actuatorType" className="form-label">제어 장치 타입</label>
-                          <input
-                              type="text"
-                              className="form-control"
-                              id="actuatorType"
-                              value={actuatorType}
-                              onChange={(e) => setActuatorType(e.target.value)}
-                          />
-                      </div>
-                  )}
-
-                  <div className="mb-3">
-                      <label htmlFor="deviceName" className="form-label">장치 이름</label>
-                      <input
+                        <label htmlFor="actuatorType" className="form-label">제어 장치 타입</label>
+                        <input
                           type="text"
-                          className="form-control"
-                          id="deviceName"
-                          value={deviceName}
-                          onChange={(e) => setDeviceName(e.target.value)}
-                      />
+                          className={`form-control ${submitted && !actuatorType ? 'is-invalid' : ''}`}
+                          id="actuatorType"
+                          value={actuatorType}
+                          onChange={(e) => setActuatorType(e.target.value)}
+                        />
+                        {submitted && !actuatorType && (
+                          <div className="invalid-feedback">제어 장치 타입을 입력해주세요.</div>
+                        )}
+                      </div>
+                    )}
+                  <div className="mb-3">
+                    <label htmlFor="deviceName" className="form-label">장치 이름</label>
+                    <input
+                      type="text"
+                      className={`form-control ${submitted && !deviceName ? 'is-invalid' : ''}`}
+                      id="deviceName"
+                      placeholder="예: 동쪽 팬, 온실 온도센서"
+                      value={deviceName}
+                      onChange={(e) => setDeviceName(e.target.value)}
+                    />
+                    {submitted && !deviceName && (
+                      <div className="invalid-feedback">장치 이름을 입력해주세요.</div>
+                    )}
                   </div>
 
                   <div className="mb-3">
@@ -449,7 +480,7 @@ const UserFarmManagement = () => {
                   </div>
               </Modal.Body>
               <Modal.Footer>
-                <Button variant="success" onClick={handleAddDeviceSubmit}>추가</Button>
+                <Button variant="success" onClick={handleAddDeviceSubmit}>추가 및 연결</Button>
                 <Button variant="secondary" onClick={handleCloseModal}>취소</Button>
               </Modal.Footer>
           </Modal>

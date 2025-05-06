@@ -129,22 +129,22 @@ router.get('/user/farm/:farm_id/esp/:esp_id', async (req, res) => {
 // ESP 추가 API
 router.post('/user/farm/:farm_id/esp', async (req, res) => {
   const { farm_id } = req.params;
-  const { esp_name, ip_address, serial_number } = req.body;  // 클라이언트에서 받은 ESP 이름, IP, 시리얼 번호
+  const { esp_name, ip_address} = req.body;  // 클라이언트에서 받은 ESP 이름, IP, 시리얼 번호
 
   // 입력값 검증
-  if (!esp_name || !ip_address || !serial_number) {
+  if (!esp_name || !ip_address) {
     return res.status(400).json({ error: "ESP 이름, IP 주소, 시리얼 번호는 필수 항목입니다." });
   }
 
   try {
     // 새로운 ESP를 DB에 추가하는 쿼리
     const insertEspQuery = `
-      INSERT INTO esps (farm_id, esp_name, serial_number, ip_address, is_connected)
-      VALUES ($1, $2, $3, $4, false)  
+      INSERT INTO esps (farm_id, esp_name, ip_address, is_connected)
+      VALUES ($1, $2, $3, false)  
       RETURNING esp_id;
     `;
 
-    const result = await pool.query(insertEspQuery, [farm_id, esp_name, serial_number, ip_address ]);
+    const result = await pool.query(insertEspQuery, [farm_id, esp_name, ip_address ]);
     const newEsp = result.rows[0];
 
     // 추가된 ESP 정보 반환

@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
     const filetypes = /jpeg|jpg|png|gif/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = /^image\/(jpeg|jpg|png|gif)$/.test(file.mimetype);  // ← 이 부분 수정
+    const mimetype = /^image\/(jpeg|jpg|png|gif)$/.test(file.mimetype); 
   
     console.log("Checking file:", file.originalname, file.mimetype);
   
@@ -34,6 +34,46 @@ const upload = multer({
   fileFilter: fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }  // 5MB 제한
 });
+
+// 게시글 상세 정보 + 댓글 조회
+  router.get("/board/posts/:id", async (req, res) => {
+    const client = await pool.connect();
+    try {
+      const { id } = req.params;
+  
+      // 게시글 가져오기
+      const postResult = await client.query(`
+        SELECT p.post_id, p.title, p.content, p.plant_type, p.created_at, u.nickname , u.user_id
+        FROM board_posts p
+        JOIN users u ON p.user_id = u.user_id
+        WHERE p.post_id = $1
+      `, [id]);
+  
+      if (postResult.rows.length === 0) {
+        return res.status(404).json({ message: "게시글을 찾을 수 없습니다." });
+      }
+  
+      const post = postResult.rows[0];
+  
+      // 댓글 가져오기
+      const commentResult = await client.query(`
+        SELECT c.comment_id, c.comment, c.commented_at, u.nickname AS author
+        FROM board_comments c
+        JOIN users u ON c.user_id = u.user_id
+        WHERE c.post_id = $1
+        ORDER BY c.commented_at ASC
+      `, [id]);
+  
+      const comments = commentResult.rows;
+  
+      res.json({ post, comments });
+    } catch (err) {
+      console.error("게시글 상세 조회 실패:", err);
+      res.status(500).json({ message: "서버 오류로 게시글을 불러오지 못했습니다." });
+    } finally {
+      client.release();
+    }
+  });
   
 // 2. 게시글 수정
   router.put('/board/posts/:id', async (req, res) => {

@@ -133,7 +133,7 @@ function PostDetailPage() {
         <Card.Body>
         <h4 className="fw-bold text-dark">{post.title}</h4>
           <p className="text-muted">
-            작성자: {post.author}
+            작성자: {post.nickname}
             {post.plant_type && ` · 품종: ${post.plant_type}`}
           </p>
           <p
