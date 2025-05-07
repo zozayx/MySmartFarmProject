@@ -6,10 +6,14 @@ const moment = require('moment');
 // ✅ User의 환경 그래프
 router.get('/user/sensor-data', async (req, res) => {
   const userId = req.user.userId; // authenticateToken 미들웨어에서 userId 추출
-  const { timeFrame } = req.query;
+  const { timeFrame , farmId} = req.query;
 
   if (!timeFrame || !['7days', '30days'].includes(timeFrame)) {
     return res.status(400).json({ error: 'Invalid timeFrame parameter' });
+  }
+
+  if (!farmId) {
+    return res.status(400).json({ error: 'Farm ID is required' });
   }
 
   const currentDate = moment();  // 현재 날짜와 시간
@@ -23,16 +27,17 @@ router.get('/user/sensor-data', async (req, res) => {
 
   try {
     const query = `
-      SELECT DATE(time) as date, sensor_type, AVG(sensor_value) as avg_value
+      SELECT DATE(sensor_logs.time) as date, sensor_logs.sensor_type, AVG(sensor_logs.sensor_value) as avg_value
       FROM sensor_logs
-      JOIN devices ON sensor_logs.device_id = devices.device_id
-      WHERE devices.user_id = $1
+      JOIN sensors ON sensor_logs.sensor_id = sensors.sensor_id
+      JOIN esps ON sensors.esp_id = esps.esp_id 
+      WHERE esps.farm_id = $1
         AND time >= $2
         AND time <= $3
-      GROUP BY DATE(time), sensor_type
+      GROUP BY DATE(time), sensor_logs.sensor_type
       ORDER BY DATE(time);
     `;
-    const result = await pool.query(query, [userId, startDate, currentDate.format('YYYY-MM-DD')]);
+    const result = await pool.query(query, [farmId, startDate, currentDate.format('YYYY-MM-DD')]);
 
     const sensorData = result.rows.reduce((acc, row) => {
       const date = moment(row.date).format('YYYY-MM-DD');
