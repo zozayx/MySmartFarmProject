@@ -14,7 +14,7 @@ const authRouter = require('./routes/auth');
 const boardRouter = require('./routes/board');
 const userRouter = require('./routes/user/dashboard');
 const devicesRouter = require('./routes/user/devices');
-const environmentRouter = require('./routes/user/environment.js');
+const autoMationRouter = require('./routes/user/automation.js');
 const graphRouter = require('./routes/user/graph.js');
 const profileRouter = require('./routes/user/profile.js');
 const postRouter = require('./routes/user/post.js');
@@ -40,7 +40,7 @@ app.use('/', authRouter);
 app.use('/', boardRouter);
 app.use('/', authenticateToken, userRouter);  // 인증된 사용자만 접근 가능한 대시보드
 app.use('/', authenticateToken, devicesRouter);  // 인증된 사용자만 접근 가능한 장치 관련 API
-app.use('/', authenticateToken, environmentRouter);
+app.use('/', authenticateToken, autoMationRouter);
 app.use('/', authenticateToken, graphRouter);
 app.use('/', authenticateToken, profileRouter);
 app.use('/', authenticateToken, postRouter);

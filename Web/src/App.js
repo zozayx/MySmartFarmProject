@@ -19,7 +19,7 @@ import UserDashboard from './pages/User/UserDashboard';
 import UserControlPanel from './pages/User/UserControlPanel';
 import DataVisualization from "./pages/User/UserDataVisualization";
 import RealTimeGraph from "./pages/User/UserRealTimeGraph";
-import UserEnvironmentSettings from "./pages/User/UserEnvironmentSettings";
+import UserCreateFarm from "./pages/User/UserCreateFarm";
 import UserFarmManagement from "./pages/User/UserFarmManagement";
 import Settings from "./pages/User/UserSettings";
 import Profile from "./pages/User/UserProfile";
@@ -74,10 +74,10 @@ function App() {
               <Route path="/user" element={<Navigate to="/user/dashboard" />} />
               <Route path="/user/dashboard" element={<UserDashboard />} />
               <Route path="/user/control" element={<UserControlPanel />} />
-              <Route path="/user/data" element={<DataVisualization />} />
+              <Route path="/user/datagraph" element={<DataVisualization />} />
               {/* ✅ 실시간 그래프 추가 */}
               <Route path="/user/realtime-graph" element={<RealTimeGraph />} />
-              <Route path="/env-settings" element={<UserEnvironmentSettings />} />
+              <Route path="/user/create-farm" element={<UserCreateFarm />} />
               <Route path="/user/farm-management" element={<UserFarmManagement />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/profile" element={<Profile />} />

@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Nav, Spinner} from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { Line } from "react-chartjs-2"; // 그래프를 위한 라이브러리
-import moment from "moment"; // 날짜 포맷을 위한 라이브러리
+import {
+  FaLightbulb,
+  FaFan,
+  FaShower,
+} from "react-icons/fa";
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
@@ -141,6 +145,18 @@ useEffect(() => {
 
   return (
     <Container className="py-5">
+      {/* 알림을 제일 상단에 배치 */}
+    <Row className="mb-4">
+      <Col>
+        <Card className="text-center shadow-sm">
+          <Card.Body>
+            <h5 className="fw-bold text-warning">📣 알림</h5>
+            <p style={{ color: 'red' }}>⚠️ 급수 시스템에 문제가 발생했습니다! 확인이 필요합니다.</p>
+          </Card.Body>
+        </Card>
+      </Col>
+    </Row>
+
       <h2 className="text-center fw-bold text-success mb-4">내 스마트팜 상태 보기</h2>
         
       <Nav
@@ -278,7 +294,9 @@ useEffect(() => {
                     {sensor.type === "humidity" && "💧 습도 센서"}
                     {sensor.type === "soil_moisture" && "🌱 토양 습도 센서"}
                     {!["temperature", "humidity", "soil_moisture"].includes(sensor.type) && `📟 ${sensor.type} 센서`}
-                    : <strong>{sensor.active ? "활성화됨" : "비활성화됨"}</strong>
+                    : <strong style={{ color: sensor.active ? 'green' : 'red' }}>
+                      {sensor.active ? "작동중" : "정지됨"}
+                      </strong>
                   </p>
                 ))}
               </Card.Body>
@@ -296,11 +314,29 @@ useEffect(() => {
                 <h5 className="text-dark fw-bold">⚙️ 제어 장치 상태</h5>
                 {data.actuators.map((device) => (
                   <p key={device.id}>
-                    {device.type === "lighting" && "💡 조명"}
-                    {device.type === "watering" && "💦 급수 시스템"}
-                    {device.type === "fan" && "🌬 팬"}
-                    {!["lighting", "watering", "fan"].includes(device.type) && `⚙️ ${device.type}`}
-                    : <strong>{device.active ? "활성화됨" : "비활성화됨"}</strong>
+                    {device.type === "LED" && (
+                      <>
+                        <FaLightbulb className="text-warning" /> 조명
+                      </>
+                    )}
+                    {device.type === "급수" && (
+                      <>
+                        <FaShower className="text-info" /> 급수 시스템
+                      </>
+                    )}
+                    {device.type === "팬" && (
+                      <>
+                        <FaFan className="text-primary" /> 팬
+                      </>
+                    )}
+                    {!["LED", "급수", "팬"].includes(device.type) && (
+                      `⚙️ ${device.type}`
+                    )}
+                    : 
+                    <strong 
+                      style={{ color: device.active ? "green" : "red" }}>
+                      {device.active ? "작동중" : "정지됨"}
+                    </strong>
                   </p>
                 ))}
               </Card.Body>

@@ -12,6 +12,7 @@ router.get('/user/farm-list', async (req, res) => {
       SELECT f.farm_id, f.farm_name, f.location, f.created_at
       FROM farms f
       WHERE f.user_id = $1
+      ORDER BY farm_id ASC
     `, [userId]);
 
     if (farmsResult.rows.length === 0) {

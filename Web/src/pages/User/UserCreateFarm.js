@@ -18,8 +18,8 @@ function UserEnvironmentSettings() {
     humidity: null,
     soilMoisture: null,
   });
-  const [plantTypes, setPlantTypes] = useState([]);
-  const [plantType, setPlantType] = useState("");
+  const [farmNames, setfarmNames] = useState([]);
+  const [farmName, setfarmName] = useState("");
   const [savedSettings, setSavedSettings] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -30,7 +30,7 @@ function UserEnvironmentSettings() {
         setLoading(true);
         console.log("🔄 품종 데이터 요청 중...");
 
-        const res = await fetch(`${BASE_URL}/user/plant-types`, {
+        const res = await fetch(`${BASE_URL}/user/farm-types`, {
           method: "GET",
           credentials: "include", // 쿠키 포함
         });
@@ -44,18 +44,18 @@ function UserEnvironmentSettings() {
         const data = await res.json();
         console.log("📦 받은 데이터:", data);
 
-        if (data.success && Array.isArray(data.plantTypes)) {
-          setPlantTypes(data.plantTypes);
+        if (data.success && Array.isArray(data.farmNames)) {
+          setfarmNames(data.farmNames);
 
-          if (data.plantTypes.length > 0) {
-            const firstPlant = data.plantTypes[0];
-            setPlantType(firstPlant.plantName);
+          if (data.farmNames.length > 0) {
+            const firstFarm = data.farmNames[0];
+            setfarmName(firstFarm.farmName);
             setInputValues({
-              temperature: firstPlant.temperature,
-              humidity: firstPlant.humidity,
-              soilMoisture: firstPlant.soilMoisture,
+              temperature: firstFarm.temperature,
+              humidity: firstFarm.humidity,
+              soilMoisture: firstFarm.soilMoisture,
             });
-            setSavedSettings(firstPlant);
+            setSavedSettings(firstFarm);
           }
         } else {
           throw new Error(data.message || "데이터를 불러오는 데 실패했습니다.");
@@ -76,17 +76,17 @@ function UserEnvironmentSettings() {
     setInputValues({ ...inputValues, [name]: value });
   };
 
-  const handlePlantChange = (e) => {
-    const selectedPlant = e.target.value;
-    setPlantType(selectedPlant);
-    const selectedPlantData = plantTypes.find(
-      (plant) => plant.plantName === selectedPlant
+  const handleFarmChange = (e) => {
+    const selectedFarm = e.target.value;
+    setfarmName(selectedFarm);
+    const selectedFarmData = farmNames.find(
+      (farm) => farm.farmName === selectedFarm
     );
-    if (selectedPlantData) {
+    if (selectedFarmData) {
       setInputValues({
-        temperature: selectedPlantData.temperature,
-        humidity: selectedPlantData.humidity,
-        soilMoisture: selectedPlantData.soilMoisture,
+        temperature: selectedFarmData.temperature,
+        humidity: selectedFarmData.humidity,
+        soilMoisture: selectedFarmData.soilMoisture,
       });
     }
   };
@@ -96,14 +96,14 @@ function UserEnvironmentSettings() {
     setErrorMessage(null);
 
     const settings = {
-      plantName: plantType,
+      farmName: farmName,
       temperature: inputValues.temperature,
       humidity: inputValues.humidity,
       soilMoisture: inputValues.soilMoisture,
     };
 
     try {
-      const res = await fetch(`${BASE_URL}/user/environment-settings`, {
+      const res = await fetch(`${BASE_URL}/user/farm-settings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -145,7 +145,7 @@ function UserEnvironmentSettings() {
           온도 <strong>{savedSettings.temperature}℃</strong> / 습도{" "}
           <strong>{savedSettings.humidity}%</strong> / 토양 습도{" "}
           <strong>{savedSettings.soilMoisture}%</strong> / 품종{" "}
-          <strong>{savedSettings.plantName}</strong>
+          <strong>{savedSettings.farmName}</strong>
         </Alert>
       )}
 
@@ -161,11 +161,11 @@ function UserEnvironmentSettings() {
             <Col md={6}>
               <Form.Group>
                 <Form.Label>📌 품종 선택</Form.Label>
-                <Form.Select value={plantType} onChange={handlePlantChange}>
-                  {Array.isArray(plantTypes) && plantTypes.length > 0 ? (
-                    plantTypes.map((type) => (
-                      <option key={type.plantName} value={type.plantName}>
-                        {type.plantName}
+                <Form.Select value={farmName} onChange={handleFarmChange}>
+                  {Array.isArray(farmNames) && farmNames.length > 0 ? (
+                    farmNames.map((type) => (
+                      <option key={type.farmName} value={type.farmName}>
+                        {type.farmName}
                       </option>
                     ))
                   ) : (
