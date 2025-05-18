@@ -19,7 +19,7 @@ const graphRouter = require('./routes/user/graph.js');
 const profileRouter = require('./routes/user/profile.js');
 const postRouter = require('./routes/user/post.js');
 const farmManagementRouter = require('./routes/user/farmmanagement.js');
-
+const storeRouter = require('./routes/user/store.js');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,7 +45,7 @@ app.use('/', authenticateToken, graphRouter);
 app.use('/', authenticateToken, profileRouter);
 app.use('/', authenticateToken, postRouter);
 app.use('/', authenticateToken, farmManagementRouter);
-
+app.use('/', authenticateToken, storeRouter);
 // 서버 실행
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐 서버 실행 중: http://0.0.0.0:${PORT}`);

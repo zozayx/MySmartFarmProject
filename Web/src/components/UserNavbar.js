@@ -101,6 +101,9 @@ function UserNavbar({ setUserRole }) {
             <Nav.Link onClick={() => handleNavClick("/user/farm-management")} className="text-white">
               🚜 내 농장 관리
             </Nav.Link>
+            <Nav.Link onClick={() => handleNavClick("/user/store")} className="text-white">
+              🛒 상점
+            </Nav.Link>
             <Nav.Link onClick={() => handleNavClick("/board")} className="text-white">
               📋 커뮤니티
             </Nav.Link>

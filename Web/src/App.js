@@ -21,6 +21,7 @@ import DataVisualization from "./pages/User/UserDataVisualization";
 import RealTimeGraph from "./pages/User/UserRealTimeGraph";
 import UserCreateFarm from "./pages/User/UserCreateFarm";
 import UserFarmManagement from "./pages/User/UserFarmManagement";
+import UserStore from "./pages/User/UserStore";
 import Settings from "./pages/User/UserSettings";
 import Profile from "./pages/User/UserProfile";
 import Help from "./pages/User/UserHelp";
@@ -79,6 +80,7 @@ function App() {
               <Route path="/user/realtime-graph" element={<RealTimeGraph />} />
               <Route path="/user/create-farm" element={<UserCreateFarm />} />
               <Route path="/user/farm-management" element={<UserFarmManagement />} />
+              <Route path="/user/store" element={<UserStore />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/help" element={<Help />} />
