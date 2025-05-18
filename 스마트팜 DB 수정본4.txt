@@ -1,0 +1,161 @@
+-- 📦 TimescaleDB 확장 설치
+CREATE EXTENSION IF NOT EXISTS timescaledb;
+
+-- 📌 STEP 1: 기존 객체 제거 (필요시)
+DROP MATERIALIZED VIEW IF EXISTS daily_sensor_avg;
+DROP TABLE IF EXISTS board_comments CASCADE;
+DROP TABLE IF EXISTS board_posts CASCADE;
+DROP TABLE IF EXISTS sensor_logs CASCADE;
+DROP TABLE IF EXISTS actuator_logs CASCADE;
+DROP TABLE IF EXISTS actuators CASCADE;
+DROP TABLE IF EXISTS sensors CASCADE;
+DROP TABLE IF EXISTS esps CASCADE;
+DROP TABLE IF EXISTS farms CASCADE;
+DROP TABLE IF EXISTS automation_conditions CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS store CASCADE;
+-- 👤 사용자 테이블
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    name TEXT NOT NULL,
+    nickname TEXT UNIQUE NOT NULL,
+    role TEXT DEFAULT 'user',
+    provider TEXT DEFAULT 'local',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 🌾 농장 테이블
+CREATE TABLE farms (
+    farm_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    farm_name TEXT NOT NULL,
+    location TEXT,
+    farm_size DOUBLE PRECISION,
+    plant_name TEXT NOT NULL,
+    notes TEXT,
+    temperature_optimal DOUBLE PRECISION,
+    humidity_optimal DOUBLE PRECISION,
+    soil_moisture_optimal DOUBLE PRECISION,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 📟 ESP 장치 테이블 (게이트웨이 개념)
+CREATE TABLE esps (
+    esp_id SERIAL PRIMARY KEY,
+    farm_id INTEGER REFERENCES farms(farm_id) ON DELETE CASCADE,
+    esp_name TEXT NOT NULL,
+    ip_address TEXT,
+    is_connected BOOLEAN DEFAULT FALSE,
+    last_seen TIMESTAMPTZ, 
+    installed_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 🌡️ 센서 테이블
+CREATE TABLE sensors (
+    sensor_id SERIAL PRIMARY KEY,
+    esp_id INTEGER REFERENCES esps(esp_id) ON DELETE CASCADE,
+    sensor_type TEXT NOT NULL ,
+    sensor_name TEXT,
+    gpio_pin INTEGER CHECK (gpio_pin IN (4, 5, 13, 14, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33)),
+    unit TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    installed_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- ⚙️ 장치 (제어기) 테이블
+CREATE TABLE actuators (
+    actuator_id SERIAL PRIMARY KEY,
+    esp_id INTEGER REFERENCES esps(esp_id) ON DELETE CASCADE,
+    actuator_type TEXT NOT NULL ,
+    actuator_name TEXT,
+    gpio_pin INTEGER CHECK (gpio_pin IN (4, 5, 13, 14, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33)),
+    is_active BOOLEAN DEFAULT TRUE,
+    installed_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 상점 테이블
+CREATE TABLE store (
+    store_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL,  -- 'sensor' or 'actuator'
+    subtype VARCHAR(100) NOT NULL,
+    price INT,
+    communication VARCHAR(100),
+    description TEXT,
+    details TEXT,
+    stock INT,
+    image_url TEXT,
+    size VARCHAR(100),          -- 크기, 예: "10x5x3 cm"
+    
+    -- 센서 전용 필드
+    measurement_range VARCHAR(100), -- 측정 가능 범위, 예: "-40~125 ℃"
+    accuracy VARCHAR(100),           -- 정확도, 예: "±0.5 ℃"
+    unit VARCHAR(50),           -- 센서 단위 (ex: ℃, %, ppm 등)
+    
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- 📜 장치 제어 기록 테이블
+CREATE TABLE actuator_logs (
+    log_id SERIAL PRIMARY KEY,
+    actuator_id INTEGER REFERENCES actuators(actuator_id) ON DELETE CASCADE,
+    action TEXT CHECK (action IN ('on', 'off')),
+    controlled_by TEXT,
+    controlled_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 📈 센서 로그 테이블 (하이퍼테이블로 전환)
+CREATE TABLE sensor_logs (
+    time TIMESTAMPTZ NOT NULL,
+    sensor_id INTEGER REFERENCES sensors(sensor_id) ON DELETE CASCADE,
+    sensor_type TEXT NOT NULL,
+    sensor_value DOUBLE PRECISION NOT NULL,
+    PRIMARY KEY (time, sensor_id)
+);
+SELECT create_hypertable('sensor_logs', 'time', if_not_exists => TRUE);
+
+-- 📊 일별 센서 평균값 (Continuous Aggregation View)
+CREATE MATERIALIZED VIEW daily_sensor_avg
+WITH (timescaledb.continuous) AS
+SELECT
+  time_bucket('1 day', time) AS date,
+  sensor_id,
+  AVG(sensor_value) AS avg_value
+FROM sensor_logs
+GROUP BY time_bucket('1 day', time), sensor_id
+WITH NO DATA;
+
+-- 📝 게시글 테이블
+CREATE TABLE board_posts (
+    post_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    plant_type TEXT,
+    content TEXT,
+    images TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 💬 댓글 테이블
+CREATE TABLE board_comments (
+    comment_id SERIAL PRIMARY KEY,
+    post_id INTEGER REFERENCES board_posts(post_id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    comment TEXT,
+    commented_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- ⚙️ 자동화 조건 테이블
+CREATE TABLE automation_conditions (
+    condition_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    sensor_id INTEGER REFERENCES sensors(sensor_id),
+    actuator_id INTEGER REFERENCES actuators(actuator_id),
+    trigger TEXT CHECK (trigger IN ('above', 'below')),
+    threshold DOUBLE PRECISION,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
