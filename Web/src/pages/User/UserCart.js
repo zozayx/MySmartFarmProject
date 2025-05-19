@@ -84,7 +84,7 @@ const Cart = () => {
         <Col md={4}>
           <Card>
             <Card.Body>
-              <h5 className="mb-3">주문 요약</h5>
+              <h5 className="mb-3">주문 내용</h5>
               <div className="d-flex justify-content-between mb-2">
                 <span>상품 수량:</span>
                 <span>{cartItems.reduce((total, item) => total + item.quantity, 0)}개</span>
