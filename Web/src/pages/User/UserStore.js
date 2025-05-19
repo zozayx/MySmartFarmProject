@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Modal, ListGroup, Spinner, Alert, Form } from 'react-bootstrap';
+import { useCart } from '../../context/CartContext';
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
@@ -54,6 +55,7 @@ const subtypeToKorean = (subtype) => {
 };
 
 const UserStore = () => {
+  const { addToCart } = useCart();
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubtype, setSelectedSubtype] = useState(null);
@@ -128,6 +130,12 @@ const UserStore = () => {
     setShowModal(false);
     setSelectedProduct(null);
     setError(null);
+  };
+
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    setShowModal(false);
+    alert('장바구니에 추가되었습니다.');
   };
 
   const activeStyle = (isActive) => ({
@@ -302,7 +310,9 @@ const UserStore = () => {
               <p><strong>재고:</strong> {selectedProduct.stock}개</p>
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="success">구매하기</Button>
+              <Button variant="success" onClick={() => handleAddToCart(selectedProduct)}>
+                장바구니 담기
+              </Button>
               <Button variant="secondary" onClick={handleClose}>닫기</Button>
             </Modal.Footer>
           </>

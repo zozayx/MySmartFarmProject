@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { PopupProvider } from "./context/PopupContext";
+import { CartProvider } from './context/CartContext';
 
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/SignupPage";
@@ -22,6 +23,7 @@ import RealTimeGraph from "./pages/User/UserRealTimeGraph";
 import UserCreateFarm from "./pages/User/UserCreateFarm";
 import UserFarmManagement from "./pages/User/UserFarmManagement";
 import UserStore from "./pages/User/UserStore";
+import UserCart from './pages/User/UserCart';
 import Settings from "./pages/User/UserSettings";
 import Profile from "./pages/User/UserProfile";
 import Help from "./pages/User/UserHelp";
@@ -50,63 +52,66 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <PopupProvider>
-        {/* 네비게이션은 NotFoundPage를 제외한 페이지들에서만 표시 */}
-        {userRole === "user" && <UserNavbar setUserRole={setUserRole} />}
-        {userRole === "admin" && <AdminNavbar setUserRole={setUserRole} />}
-        {!userRole && <HomeNavbar />} {/* 로그인 안 된 상태 */}
+    <CartProvider>
+      <Router>
+        <PopupProvider>
+          {/* 네비게이션은 NotFoundPage를 제외한 페이지들에서만 표시 */}
+          {userRole === "user" && <UserNavbar setUserRole={setUserRole} />}
+          {userRole === "admin" && <AdminNavbar setUserRole={setUserRole} />}
+          {!userRole && <HomeNavbar />} {/* 로그인 안 된 상태 */}
 
-        <Routes>
-          {/* ✅ 홈페이지 - 홍보용 */}
-          <Route path="/" element={<HomePage setUserRole={setUserRole} />} />
-          <Route path="/board" element={<BoardPage />} />
-          <Route path="/board/write" element={userRole ? <WritePostPage /> : <Navigate to="/login" />} />
-          <Route path="/board/:id" element={userRole ? <PostDetailPage /> : <Navigate to="/login" />} />
-          <Route path="/edit/post/:id" element={userRole ? <EditPostPage /> : <Navigate to="/login" />} />
+          <Routes>
+            {/* ✅ 홈페이지 - 홍보용 */}
+            <Route path="/" element={<HomePage setUserRole={setUserRole} />} />
+            <Route path="/board" element={<BoardPage />} />
+            <Route path="/board/write" element={userRole ? <WritePostPage /> : <Navigate to="/login" />} />
+            <Route path="/board/:id" element={userRole ? <PostDetailPage /> : <Navigate to="/login" />} />
+            <Route path="/edit/post/:id" element={userRole ? <EditPostPage /> : <Navigate to="/login" />} />
 
-          {/* ✅ 로그인 */}
-          <Route path="/login" element={<LoginPage setUserRole={setUserRole} />} />
-          <Route path="/signup" element={<RegisterPage />} />
+            {/* ✅ 로그인 */}
+            <Route path="/login" element={<LoginPage setUserRole={setUserRole} />} />
+            <Route path="/signup" element={<RegisterPage />} />
 
-          {/* ✅ 유저용 페이지 */}
-          {userRole === "user" && (
-            <>
-              <Route path="/user" element={<Navigate to="/user/dashboard" />} />
-              <Route path="/user/dashboard" element={<UserDashboard />} />
-              <Route path="/user/control" element={<UserControlPanel />} />
-              <Route path="/user/datagraph" element={<DataVisualization />} />
-              {/* ✅ 실시간 그래프 추가 */}
-              <Route path="/user/realtime-graph" element={<RealTimeGraph />} />
-              <Route path="/user/create-farm" element={<UserCreateFarm />} />
-              <Route path="/user/farm-management" element={<UserFarmManagement />} />
-              <Route path="/user/store" element={<UserStore />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/help" element={<Help />} />
-            </>
-          )}
+            {/* ✅ 유저용 페이지 */}
+            {userRole === "user" && (
+              <>
+                <Route path="/user" element={<Navigate to="/user/dashboard" />} />
+                <Route path="/user/dashboard" element={<UserDashboard />} />
+                <Route path="/user/control" element={<UserControlPanel />} />
+                <Route path="/user/datagraph" element={<DataVisualization />} />
+                {/* ✅ 실시간 그래프 추가 */}
+                <Route path="/user/realtime-graph" element={<RealTimeGraph />} />
+                <Route path="/user/create-farm" element={<UserCreateFarm />} />
+                <Route path="/user/farm-management" element={<UserFarmManagement />} />
+                <Route path="/user/store" element={<UserStore />} />
+                <Route path="/user/cart" element={<UserCart />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/help" element={<Help />} />
+              </>
+            )}
 
-          {/* ✅ 어드민용 페이지 */}
-          {userRole === "admin" && (
-            <>
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/users" element={<AdminUserList />} />
-              <Route path="/admin/analytics" element={<AdminAnalytics />} />
-              <Route path="/admin/monitoring" element={<AdminMonitoring />} />
-              <Route path="/admin/eventlogs" element={<AdminEventLogs />} />
-              <Route path="/admin/environment" element={<AdminEnvironmentSettings />} />
-              <Route path="/admin/security" element={<AdminSecuritySettings />} />
-              <Route path="/admin/system" element={<AdminSystemSettings />} />
-              <Route path="/admin/profile" element={<AdminProfile />} />
-            </>
-          )}
+            {/* ✅ 어드민용 페이지 */}
+            {userRole === "admin" && (
+              <>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/users" element={<AdminUserList />} />
+                <Route path="/admin/analytics" element={<AdminAnalytics />} />
+                <Route path="/admin/monitoring" element={<AdminMonitoring />} />
+                <Route path="/admin/eventlogs" element={<AdminEventLogs />} />
+                <Route path="/admin/environment" element={<AdminEnvironmentSettings />} />
+                <Route path="/admin/security" element={<AdminSecuritySettings />} />
+                <Route path="/admin/system" element={<AdminSystemSettings />} />
+                <Route path="/admin/profile" element={<AdminProfile />} />
+              </>
+            )}
 
-          {/* ✅ 잘못된 경로 */}
-          <Route path="/*" element={<NotFoundPage />} />
-        </Routes>
-      </PopupProvider>
-    </Router>
+            {/* ✅ 잘못된 경로 */}
+            <Route path="/*" element={<NotFoundPage />} />
+          </Routes>
+        </PopupProvider>
+      </Router>
+    </CartProvider>
   );
 }
 

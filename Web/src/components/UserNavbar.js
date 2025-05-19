@@ -5,11 +5,13 @@ import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import { Link, useNavigate } from "react-router-dom";
 import { usePopup } from "../context/PopupContext";
+import { useCart } from '../context/CartContext';
 
 function UserNavbar({ setUserRole }) {
   const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
   const { showPopup } = usePopup();
+  const { getTotalItems } = useCart();
 
   const handleNavClick = (path) => {
     setExpanded(false);
@@ -102,12 +104,22 @@ function UserNavbar({ setUserRole }) {
               🚜 내 농장 관리
             </Nav.Link>
             <Nav.Link onClick={() => handleNavClick("/user/store")} className="text-white">
-              🛒 상점
+              🏬 상점
+            </Nav.Link>
+            <Nav.Link onClick={() => handleNavClick("/user/cart")} className="text-white position-relative">
+              🛒 장바구니
+              {getTotalItems() > 0 && (
+                <span
+                  className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                  style={{ fontSize: '0.7rem' }}
+                >
+                  {getTotalItems()}
+                </span>
+              )}
             </Nav.Link>
             <Nav.Link onClick={() => handleNavClick("/board")} className="text-white">
               📋 커뮤니티
             </Nav.Link>
-
             <NavDropdown title="⚙️ 설정" id="settings-nav-dropdown">
               <NavDropdown.Item onClick={() => handleNavClick("/settings")}>
                 🔧 앱 설정
