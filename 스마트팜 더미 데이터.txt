@@ -10,135 +10,143 @@ VALUES
   (1, '농장 B', '경기도 용인시', 800, '상추', '비닐하우스에서 재배', 22.0, 55.0, 35.0),
   (2, '농장 C', '부산시 기장군', 1000, '배추', '유기농 방식', 20.0, 65.0, 40.0);
 
-INSERT INTO esps (farm_id, esp_name, ip_address, is_connected)
+INSERT INTO esps (farm_id, ip_address, is_connected)
 VALUES
-  (1, 'ESP1', '192.168.0.101', TRUE),
-  (1, 'ESP2', '192.168.0.102', FALSE),
-  (2, 'ESP3', '192.168.0.201', TRUE);
+  (1, '192.168.0.101', TRUE), -- 1
+  (1,  '192.168.0.102', FALSE), -- 2
+  (1, '192.168.0.101', TRUE), -- 3
+  (2,  '192.168.0.102', FALSE), -- 4
+  (3, '192.168.0.101', TRUE), -- 5
+  (3,  '192.168.0.102', FALSE), -- 6
+  (1, '192.168.0.101', TRUE), -- 7
+  (1,  '192.168.0.102', FALSE), -- 8
+  (1, '192.168.0.101', TRUE), -- 9
+  (2,  '192.168.0.201', TRUE);
 
-INSERT INTO sensors (esp_id, sensor_type, sensor_name, gpio_pin, unit, is_active)
+INSERT INTO sensors (esp_id, sensor_type, device_name, sensor_name, gpio_pin, unit, is_active)
 VALUES
-  (1, 'Temperature Sensor', 'temperature', 13, '°C', TRUE),
-  (1, 'Humidity Sensor', 'humidity', 14, '%', TRUE),
-  (1, 'Soil Moisture Sensor', 'soil_moisture', 16, '%', TRUE),
-  (2, '토양 습도', 'soil_moisture', 13, '%', TRUE),
-  (3, '온도', 'soil_moisture', 14, '°C', TRUE),
-  (3, '습도', 'soil_moisture', 16, '%', TRUE);
+  (1, 'Temperature Sensor', 'DS18B20 방수 온도 센서',  'temperature', 4, '°C', TRUE),
+  (2, 'Humidity Sensor', 'SHT31-D 온습도 센서', 'humidity',  4, '%', TRUE),
+  (3, 'Soil Moisture Sensor', 'Capacitive Soil Moisture Sensor v2.0', 'soil mositure',  4, '%', TRUE),
+  (4, '토양 습도', 'soil_moisture',  'soil_moisture', 4, '%', TRUE),
+  (5, '온도', 'soil_moisture' , 'soil_moisture', 4, '°C', TRUE),
+  (6, '습도', 'soil_moisture' , 'soil_moisture', 4, '%', TRUE);
 
-INSERT INTO actuators (esp_id, actuator_type, actuator_name, gpio_pin, is_active)
+INSERT INTO actuators (esp_id, actuator_type, device_name, actuator_name, gpio_pin, is_active)
 VALUES
-  (1, 'LED', '조명', 16, TRUE),
-  (1, '팬', '팬', 17, TRUE),
-  (2, 'LED', '조명', 18, FALSE),
-  (3, '선풍기', '팬', 19, TRUE);
+  (7, 'LED', 'LED',  '조명', 5, TRUE),
+  (8, '팬', '팬',  '팬', 5, TRUE),
+  (9, 'LED', 'LED', '조명', 5, FALSE),
+  (10, '선풍기', '선풍기', '팬', 5, TRUE);
 
 
 -- 🌡️ 센서 로그 더미 데이터 (5시간 동안 10분 단위)
 -- 온도 센서 데이터
 INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value) VALUES
-(NOW() - INTERVAL '5 hours', 1, 'temperature', 22.0),
-(NOW() - INTERVAL '4 hours 50 minutes', 1, 'temperature', 22.3),
-(NOW() - INTERVAL '4 hours 40 minutes', 1, 'temperature', 22.5),
-(NOW() - INTERVAL '4 hours 30 minutes', 1, 'temperature', 22.7),
-(NOW() - INTERVAL '4 hours 20 minutes', 1, 'temperature', 22.9),
-(NOW() - INTERVAL '4 hours 10 minutes', 1, 'temperature', 23.1),
-(NOW() - INTERVAL '4 hours', 1, 'temperature', 23.3),
-(NOW() - INTERVAL '3 hours 50 minutes', 1, 'temperature', 23.5),
-(NOW() - INTERVAL '3 hours 40 minutes', 1, 'temperature', 23.6),
-(NOW() - INTERVAL '3 hours 30 minutes', 1, 'temperature', 23.7),
-(NOW() - INTERVAL '3 hours 20 minutes', 1, 'temperature', 23.8),
-(NOW() - INTERVAL '3 hours 10 minutes', 1, 'temperature', 24.0),
-(NOW() - INTERVAL '3 hours', 1, 'temperature', 24.1),
-(NOW() - INTERVAL '2 hours 50 minutes', 1, 'temperature', 24.2),
-(NOW() - INTERVAL '2 hours 40 minutes', 1, 'temperature', 24.3),
-(NOW() - INTERVAL '2 hours 30 minutes', 1, 'temperature', 24.4),
-(NOW() - INTERVAL '2 hours 20 minutes', 1, 'temperature', 24.5),
-(NOW() - INTERVAL '2 hours 10 minutes', 1, 'temperature', 24.6),
-(NOW() - INTERVAL '2 hours', 1, 'temperature', 24.7),
-(NOW() - INTERVAL '1 hour 50 minutes', 1, 'temperature', 24.8),
-(NOW() - INTERVAL '1 hour 40 minutes', 1, 'temperature', 24.9),
-(NOW() - INTERVAL '1 hour 30 minutes', 1, 'temperature', 25.0),
-(NOW() - INTERVAL '1 hour 20 minutes', 1, 'temperature', 25.1),
-(NOW() - INTERVAL '1 hour 10 minutes', 1, 'temperature', 25.2),
-(NOW() - INTERVAL '1 hour', 1, 'temperature', 25.3),
-(NOW() - INTERVAL '50 minutes', 1, 'temperature', 25.4),
-(NOW() - INTERVAL '40 minutes', 1, 'temperature', 25.5),
-(NOW() - INTERVAL '30 minutes', 1, 'temperature', 25.6),
-(NOW() - INTERVAL '20 minutes', 1, 'temperature', 25.7),
-(NOW() - INTERVAL '10 minutes', 1, 'temperature', 25.8);
+(NOW() - INTERVAL '5 hours', 1, '온도', 22.0),
+(NOW() - INTERVAL '4 hours 50 minutes', 1, '온도', 22.3),
+(NOW() - INTERVAL '4 hours 40 minutes', 1, '온도', 22.5),
+(NOW() - INTERVAL '4 hours 30 minutes', 1, '온도', 22.7),
+(NOW() - INTERVAL '4 hours 20 minutes', 1, '온도', 22.9),
+(NOW() - INTERVAL '4 hours 10 minutes', 1, '온도', 23.1),
+(NOW() - INTERVAL '4 hours', 1, '온도', 23.3),
+(NOW() - INTERVAL '3 hours 50 minutes', 1, '온도', 23.5),
+(NOW() - INTERVAL '3 hours 40 minutes', 1, '온도', 23.6),
+(NOW() - INTERVAL '3 hours 30 minutes', 1, '온도', 23.7),
+(NOW() - INTERVAL '3 hours 20 minutes', 1, '온도', 23.8),
+(NOW() - INTERVAL '3 hours 10 minutes', 1, '온도', 24.0),
+(NOW() - INTERVAL '3 hours', 1, '온도', 24.1),
+(NOW() - INTERVAL '2 hours 50 minutes', 1, '온도', 24.2),
+(NOW() - INTERVAL '2 hours 40 minutes', 1, '온도', 24.3),
+(NOW() - INTERVAL '2 hours 30 minutes', 1, '온도', 24.4),
+(NOW() - INTERVAL '2 hours 20 minutes', 1, '온도', 24.5),
+(NOW() - INTERVAL '2 hours 10 minutes', 1, '온도', 24.6),
+(NOW() - INTERVAL '2 hours', 1, '온도', 24.7),
+(NOW() - INTERVAL '1 hour 50 minutes', 1, '온도', 24.8),
+(NOW() - INTERVAL '1 hour 40 minutes', 1, '온도', 24.9),
+(NOW() - INTERVAL '1 hour 30 minutes', 1, '온도', 25.0),
+(NOW() - INTERVAL '1 hour 20 minutes', 1, '온도', 25.1),
+(NOW() - INTERVAL '1 hour 10 minutes', 1, '온도', 25.2),
+(NOW() - INTERVAL '1 hour', 1, '온도', 25.3),
+(NOW() - INTERVAL '50 minutes', 1, '온도', 25.4),
+(NOW() - INTERVAL '40 minutes', 1, '온도', 25.5),
+(NOW() - INTERVAL '30 minutes', 1, '온도', 25.6),
+(NOW() - INTERVAL '20 minutes', 1, '온도', 25.7),
+(NOW() - INTERVAL '10 minutes', 1, '온도', 25.8);
 
 -- 습도 센서 데이터
 INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value) VALUES
-(NOW() - INTERVAL '5 hours', 2, 'humidity', 60.5),
-(NOW() - INTERVAL '4 hours 50 minutes', 2, 'humidity', 60.8),
-(NOW() - INTERVAL '4 hours 40 minutes', 2, 'humidity', 61.0),
-(NOW() - INTERVAL '4 hours 30 minutes', 2, 'humidity', 61.5),
-(NOW() - INTERVAL '4 hours 20 minutes', 2, 'humidity', 61.8),
-(NOW() - INTERVAL '4 hours 10 minutes', 2, 'humidity', 62.0),
-(NOW() - INTERVAL '4 hours', 2, 'humidity', 62.3),
-(NOW() - INTERVAL '3 hours 50 minutes', 2, 'humidity', 62.5),
-(NOW() - INTERVAL '3 hours 40 minutes', 2, 'humidity', 62.8),
-(NOW() - INTERVAL '3 hours 30 minutes', 2, 'humidity', 63.0),
-(NOW() - INTERVAL '3 hours 20 minutes', 2, 'humidity', 63.2),
-(NOW() - INTERVAL '3 hours 10 minutes', 2, 'humidity', 63.5),
-(NOW() - INTERVAL '3 hours', 2, 'humidity', 63.8),
-(NOW() - INTERVAL '2 hours 50 minutes', 2, 'humidity', 64.0),
-(NOW() - INTERVAL '2 hours 40 minutes', 2, 'humidity', 64.3),
-(NOW() - INTERVAL '2 hours 30 minutes', 2, 'humidity', 64.5),
-(NOW() - INTERVAL '2 hours 20 minutes', 2, 'humidity', 64.8),
-(NOW() - INTERVAL '2 hours 10 minutes', 2, 'humidity', 65.0),
-(NOW() - INTERVAL '2 hours', 2, 'humidity', 65.3),
-(NOW() - INTERVAL '1 hour 50 minutes', 2, 'humidity', 65.5),
-(NOW() - INTERVAL '1 hour 40 minutes', 2, 'humidity', 65.8),
-(NOW() - INTERVAL '1 hour 30 minutes', 2, 'humidity', 66.0),
-(NOW() - INTERVAL '1 hour 20 minutes', 2, 'humidity', 66.3),
-(NOW() - INTERVAL '1 hour 10 minutes', 2, 'humidity', 66.5),
-(NOW() - INTERVAL '1 hour', 2, 'humidity', 66.8),
-(NOW() - INTERVAL '50 minutes', 2, 'humidity', 67.0),
-(NOW() - INTERVAL '40 minutes', 2, 'humidity', 67.3),
-(NOW() - INTERVAL '30 minutes', 2, 'humidity', 67.5),
-(NOW() - INTERVAL '20 minutes', 2, 'humidity', 67.8),
-(NOW() - INTERVAL '10 minutes', 2, 'humidity', 68.0);
+(NOW() - INTERVAL '5 hours', 2, '습도', 60.5),
+(NOW() - INTERVAL '4 hours 50 minutes', 2, '습도', 60.8),
+(NOW() - INTERVAL '4 hours 40 minutes', 2, '습도', 61.0),
+(NOW() - INTERVAL '4 hours 30 minutes', 2, '습도', 61.5),
+(NOW() - INTERVAL '4 hours 20 minutes', 2, '습도', 61.8),
+(NOW() - INTERVAL '4 hours 10 minutes', 2, '습도', 62.0),
+(NOW() - INTERVAL '4 hours', 2, '습도', 62.3),
+(NOW() - INTERVAL '3 hours 50 minutes', 2, '습도', 62.5),
+(NOW() - INTERVAL '3 hours 40 minutes', 2, '습도', 62.8),
+(NOW() - INTERVAL '3 hours 30 minutes', 2, '습도', 63.0),
+(NOW() - INTERVAL '3 hours 20 minutes', 2, '습도', 63.2),
+(NOW() - INTERVAL '3 hours 10 minutes', 2, '습도', 63.5),
+(NOW() - INTERVAL '3 hours', 2, '습도', 63.8),
+(NOW() - INTERVAL '2 hours 50 minutes', 2, '습도', 64.0),
+(NOW() - INTERVAL '2 hours 40 minutes', 2, '습도', 64.3),
+(NOW() - INTERVAL '2 hours 30 minutes', 2, '습도', 64.5),
+(NOW() - INTERVAL '2 hours 20 minutes', 2, '습도', 64.8),
+(NOW() - INTERVAL '2 hours 10 minutes', 2, '습도', 65.0),
+(NOW() - INTERVAL '2 hours', 2, '습도', 65.3),
+(NOW() - INTERVAL '1 hour 50 minutes', 2, '습도', 65.5),
+(NOW() - INTERVAL '1 hour 40 minutes', 2, '습도', 65.8),
+(NOW() - INTERVAL '1 hour 30 minutes', 2, '습도', 66.0),
+(NOW() - INTERVAL '1 hour 20 minutes', 2, '습도', 66.3),
+(NOW() - INTERVAL '1 hour 10 minutes', 2, '습도', 66.5),
+(NOW() - INTERVAL '1 hour', 2, '습도', 66.8),
+(NOW() - INTERVAL '50 minutes', 2, '습도', 67.0),
+(NOW() - INTERVAL '40 minutes', 2, '습도', 67.3),
+(NOW() - INTERVAL '30 minutes', 2, '습도', 67.5),
+(NOW() - INTERVAL '20 minutes', 2, '습도', 67.8),
+(NOW() - INTERVAL '10 minutes', 2, '습도', 68.0);
 
 -- 토양 수분 센서 데이터
 INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value) VALUES
-(NOW() - INTERVAL '5 hours', 3, 'soil_moisture', 45.0),
-(NOW() - INTERVAL '4 hours 50 minutes', 3, 'soil_moisture', 45.3),
-(NOW() - INTERVAL '4 hours 40 minutes', 3, 'soil_moisture', 45.5),
-(NOW() - INTERVAL '4 hours 30 minutes', 3, 'soil_moisture', 45.8),
-(NOW() - INTERVAL '4 hours 20 minutes', 3, 'soil_moisture', 46.0),
-(NOW() - INTERVAL '4 hours 10 minutes', 3, 'soil_moisture', 46.2),
-(NOW() - INTERVAL '4 hours', 3, 'soil_moisture', 46.5),
-(NOW() - INTERVAL '3 hours 50 minutes', 3, 'soil_moisture', 46.8),
-(NOW() - INTERVAL '3 hours 40 minutes', 3, 'soil_moisture', 47.0),
-(NOW() - INTERVAL '3 hours 30 minutes', 3, 'soil_moisture', 47.2),
-(NOW() - INTERVAL '3 hours 20 minutes', 3, 'soil_moisture', 47.5),
-(NOW() - INTERVAL '3 hours 10 minutes', 3, 'soil_moisture', 47.8),
-(NOW() - INTERVAL '3 hours', 3, 'soil_moisture', 48.0),
-(NOW() - INTERVAL '2 hours 50 minutes', 3, 'soil_moisture', 48.3),
-(NOW() - INTERVAL '2 hours 40 minutes', 3, 'soil_moisture', 48.5),
-(NOW() - INTERVAL '2 hours 30 minutes', 3, 'soil_moisture', 48.8),
-(NOW() - INTERVAL '2 hours 20 minutes', 3, 'soil_moisture', 49.0),
-(NOW() - INTERVAL '2 hours 10 minutes', 3, 'soil_moisture', 49.3),
-(NOW() - INTERVAL '2 hours', 3, 'soil_moisture', 49.5),
-(NOW() - INTERVAL '1 hour 50 minutes', 3, 'soil_moisture', 49.8),
-(NOW() - INTERVAL '1 hour 40 minutes', 3, 'soil_moisture', 50.0),
-(NOW() - INTERVAL '1 hour 30 minutes', 3, 'soil_moisture', 50.2),
-(NOW() - INTERVAL '1 hour 20 minutes', 3, 'soil_moisture', 50.5),
-(NOW() - INTERVAL '1 hour 10 minutes', 3, 'soil_moisture', 50.8),
-(NOW() - INTERVAL '1 hour', 3, 'soil_moisture', 51.0),
-(NOW() - INTERVAL '50 minutes', 3, 'soil_moisture', 51.2),
-(NOW() - INTERVAL '40 minutes', 3, 'soil_moisture', 51.5),
-(NOW() - INTERVAL '30 minutes', 3, 'soil_moisture', 51.7),
-(NOW() - INTERVAL '20 minutes', 3, 'soil_moisture', 52.0),
-(NOW() - INTERVAL '10 minutes', 3, 'soil_moisture', 52.2);
+(NOW() - INTERVAL '5 hours', 3, '토양 수분', 45.0),
+(NOW() - INTERVAL '4 hours 50 minutes', 3, '토양 수분', 45.3),
+(NOW() - INTERVAL '4 hours 40 minutes', 3, '토양 수분', 45.5),
+(NOW() - INTERVAL '4 hours 30 minutes', 3, '토양 수분', 45.8),
+(NOW() - INTERVAL '4 hours 20 minutes', 3, '토양 수분', 46.0),
+(NOW() - INTERVAL '4 hours 10 minutes', 3, '토양 수분', 46.2),
+(NOW() - INTERVAL '4 hours', 3, '토양 수분', 46.5),
+(NOW() - INTERVAL '3 hours 50 minutes', 3, '토양 수분', 46.8),
+(NOW() - INTERVAL '3 hours 40 minutes', 3, '토양 수분', 47.0),
+(NOW() - INTERVAL '3 hours 30 minutes', 3, '토양 수분', 47.2),
+(NOW() - INTERVAL '3 hours 20 minutes', 3, '토양 수분', 47.5),
+(NOW() - INTERVAL '3 hours 10 minutes', 3, '토양 수분', 47.8),
+(NOW() - INTERVAL '3 hours', 3, '토양 수분', 48.0),
+(NOW() - INTERVAL '2 hours 50 minutes', 3, '토양 수분', 48.3),
+(NOW() - INTERVAL '2 hours 40 minutes', 3, '토양 수분', 48.5),
+(NOW() - INTERVAL '2 hours 30 minutes', 3, '토양 수분', 48.8),
+(NOW() - INTERVAL '2 hours 20 minutes', 3, '토양 수분', 49.0),
+(NOW() - INTERVAL '2 hours 10 minutes', 3, '토양 수분', 49.3),
+(NOW() - INTERVAL '2 hours', 3, '토양 수분', 49.5),
+(NOW() - INTERVAL '1 hour 50 minutes', 3, '토양 수분', 49.8),
+(NOW() - INTERVAL '1 hour 40 minutes', 3, '토양 수분', 50.0),
+(NOW() - INTERVAL '1 hour 30 minutes', 3, '토양 수분', 50.2),
+(NOW() - INTERVAL '1 hour 20 minutes', 3, '토양 수분', 50.5),
+(NOW() - INTERVAL '1 hour 10 minutes', 3, '토양 수분', 50.8),
+(NOW() - INTERVAL '1 hour', 3, '토양 수분', 51.0),
+(NOW() - INTERVAL '50 minutes', 3, '토양 수분', 51.2),
+(NOW() - INTERVAL '40 minutes', 3, '토양 수분', 51.5),
+(NOW() - INTERVAL '30 minutes', 3, '토양 수분', 51.7),
+(NOW() - INTERVAL '20 minutes', 3, '토양 수분', 52.0),
+(NOW() - INTERVAL '10 minutes', 3, '토양 수분', 52.2);
+
 
 -- 30일치 데이터 삽입
 INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value)
 SELECT
     NOW() - INTERVAL '29 days' + (INTERVAL '1 day' * series.day) AS time,
     1,  -- 온도 센서
-    'temperature' AS sensor_type,
+    '온도' AS sensor_type,
     ROUND((20 + (RANDOM() * 10))::numeric, 2)  -- 20 ~ 30 사이의 랜덤 온도 값
 FROM generate_series(0, 29) AS series(day)
 
@@ -147,7 +155,7 @@ UNION ALL
 SELECT
     NOW() - INTERVAL '29 days' + (INTERVAL '1 day' * series.day) AS time,
     2,  -- 습도 센서
-    'humidity' AS sensor_type,
+    '습도' AS sensor_type,
     ROUND((40 + (RANDOM() * 40))::numeric, 2)  -- 40 ~ 80 사이의 랜덤 습도 값
 FROM generate_series(0, 29) AS series(day)
 
@@ -156,7 +164,7 @@ UNION ALL
 SELECT
     NOW() - INTERVAL '29 days' + (INTERVAL '1 day' * series.day) AS time,
     3,  -- 토양 수분 센서
-    'soil_moisture' AS sensor_type,
+    '토양 수분' AS sensor_type,
     ROUND((20 + (RANDOM() * 30))::numeric, 2)  -- 20 ~ 50 사이의 랜덤 토양 수분 값
 FROM generate_series(0, 29) AS series(day);
 
@@ -180,114 +188,114 @@ VALUES
 (2, 1, '저도 환기팬 타이머 설정해봤어요. 효과 좋네요!');
 
 --부품 더미 데이터
-INSERT INTO store (name, type, subtype, price, image_url, description, details, unit, communication, stock, measurement_range, accuracy, size)
+INSERT INTO store (name, type, subtype, price, image_url, description, details, unit, gpio_pin, communication, stock,measurement_range, accuracy, size)
 VALUES
 -- 온도 센서
 ('DS18B20 방수 온도 센서', 'sensor', '온도', 8700,
 '/uploads/DS18B20.jpg',
 '방수형 디지털 온도 센서',
 '1-Wire 통신 방식, -55~125℃ 측정 가능, 다중 센서 연결 가능. 농업 및 수경재배에 적합.',
-'℃', '1-Wire', 120, '-55~125 ℃', '±0.5 ℃', '6.5x2.5 cm'),
+'℃', 4, '1-Wire', 120, '-55~125 ℃', '±0.5 ℃', '6.5x2.5 cm'),
 
 -- 온습도 센서
 ('SHT31-D 온습도 센서', 'sensor', '습도', 12300,
 '/uploads/SHT31-D.jpg',
 '고정밀 온습도 센서',
 'I²C 통신, 온도 -40~125℃, 습도 0~100%RH, 정확도 ±2% RH, 산업용 수준',
-'%', 'I2C', 80, '온도: -40~125 ℃, 습도: 0~100 %RH', '±0.3 ℃, ±2 %RH', '2.5x2.5x0.9 cm'),
+'%', 4, 'I2C', 80, '온도: -40~125 ℃, 습도: 0~100 %RH', '±0.3 ℃, ±2 %RH', '2.5x2.5x0.9 cm'),
 
 -- 조도 센서
 ('BH1750 조도 센서', 'sensor', '조도', 9000,
 '/uploads/BH1750.jpg',
 '광센서 기반 디지털 조도계',
 'I²C 통신, 1~65535 lux 범위 측정, 실내외 광량 제어용',
-'lux', 'I2C', 150, '1~65535 lux', '±20 %', '3.5x2.5x1.2 cm'),
+'lux', 4, 'I2C', 150, '1~65535 lux', '±20 %', '3.5x2.5x1.2 cm'),
 
 -- 토양 수분 센서
 ('Capacitive Soil Moisture Sensor v2.0', 'sensor', '토양수분', 7800,
 '/uploads/Capacitive.jpg',
 '용량식 토양 수분 센서',
 '부식 방지형, 아날로그 출력 0~3.3V, 농업 토양 습도 측정에 적합',
-'%', 'Analog', 60, '0~100 %', '±3 %', '6.5x3x1 cm'),
+'%', 4, 'Analog', 60, '0~100 %', '±3 %', '6.5x3x1 cm'),
 
 -- 토양 온도 센서
 ('DS18B20 방수 온도 센서', 'sensor', '토양온도', 8700,
 '/uploads/DS18B20.jpg',
 '토양용 방수 온도 센서',
 '1-Wire 통신, -55~125℃ 측정 가능, 방수 설계로 토양 내 사용 적합',
-'℃', '1-Wire', 100, '-55~125 ℃', '±0.5 ℃', '6.5x2.5 cm'),
+'℃', 4, '1-Wire', 100, '-55~125 ℃', '±0.5 ℃', '6.5x2.5 cm'),
 
 -- 이산화탄소 센서
 ('MH-Z19B CO₂ 센서', 'sensor', '이산화탄소', 25000,
 '/uploads/mhz19b.jpg',
 'CO₂ 농도 측정 센서',
 'UART 통신, 0~5000 ppm 범위, 정확도 ±50 ppm + 5% 측정값',
-'ppm', 'UART', 50, '0~5000 ppm', '±(50 ppm + 5%)', '5.3x3.5x1.5 cm'),
+'ppm', 4,  'UART', 50, '0~5000 ppm', '±(50 ppm + 5%)', '5.3x3.5x1.5 cm'),
 
 -- pH 센서
 ('Gravity Analog pH Sensor', 'sensor', 'ph', 39500,
 '/uploads/ph_sensor.jpg',
 '수질 측정용 pH 센서',
 'BNC 프로브, pH 0~14 측정, 정확도 ±0.1 pH, 아날로그 출력',
-'pH', 'Analog', 30, '0~14 pH', '±0.1 pH', '15x2 cm (프로브 길이x지름)'),
+'pH', 4 ,  'Analog', 30, '0~14 pH', '±0.1 pH', '15x2 cm (프로브 길이x지름)'),
 
 -- EC 센서
 ('Gravity Analog EC Sensor', 'sensor', 'ec', 39500,
 '/uploads/ec_sensor.jpg',
 '전기전도도 측정 센서',
 'BNC 프로브, 0~20 mS/cm 범위, 고정밀 양액 농도 측정용',
-'ms/cm', 'Analog', 30, '0~20 ms/cm', '±2%', '15x2 cm (프로브 길이x지름)'),
+'ms/cm', 4 ,  'Analog', 30, '0~20 ms/cm', '±2%', '15x2 cm (프로브 길이x지름)'),
 
 -- 풍속 센서
 ('Davis 6410 컵형 풍속계', 'sensor', '풍속', 235000,
 '/uploads/davis6410.jpg',
 'Vantage Pro2 및 EnviroMonitor 시스템용 고성능 컵형 풍속계',
 '풍속 0.5 ~ 89 m/s, 풍향 0° ~ 355°, 풍동 실험 시속 200마일 이상 견딤',
-'mph', 'Digital', 15,'1 ~ 200 mph (0.5 ~ 89 m/s), 0° ~ 355°','±2 mph', '381 x 38 x 457 mm'),
+'mph', 4 ,  'Digital', 15,'1 ~ 200 mph (0.5 ~ 89 m/s), 0° ~ 355°','±2 mph', '381 x 38 x 457 mm'),
 
 -- 풍향 센서
 ('DFRobot Wind Direction Sensor', 'sensor', '풍향', 74100,
 '/uploads/wind_dir.jpg',
 '8방향 풍향 센서',
 '아날로그 출력, 0~360도 방향 측정, 온실 환경 분석 및 제어용',
-'deg', 'Analog', 10, '0~360 deg', '±5 deg', '10x10x10 cm'),
+'deg', 4 ,  'Analog', 10, '0~360 deg', '±5 deg', '10x10x10 cm'),
 
 -- 강우 센서
 ('YL-83 강우 감지 센서', 'sensor', '강우', 12300,
 '/uploads/yl83.jpg',
 '비 감지용 센서 모듈',
 '아날로그 및 디지털 출력, 강우 감지 시 신호 출력',
-'-', 'Analog/Digital', 90, '-', '-', '3x3 cm'),
+'-', 4 ,  'Analog/Digital', 90, '-', '-', '3x3 cm'),
 
 -- 수위 센서
 ('HC-SR04 초음파 거리 센서', 'sensor', '수위', 5500,
 '/uploads/hcsr04.jpg',
 '초음파 방식 수위 센서',
 '4~450 cm 거리 측정 가능, 디지털 출력, 수조 및 물탱크 수위 모니터링',
-'cm', 'Digital', 120, '4~450 cm', '±3 mm', '4.5x2.5x1.5 cm'),
+'cm', 4, 'Digital', 120, '4~450 cm', '±3 mm', '4.5x2.5x1.5 cm'),
 
 -- 미세먼지 센서
 ('PMS5003 미세먼지 센서', 'sensor', '미세먼지', 34000,
 '/uploads/pms5003.jpg',
 'PM2.5/PM10 측정 센서',
 'UART 통신, 미세먼지 농도 측정, 실내 공기질 모니터링용',
-'μg/m³', 'UART', 45, '0~1000 μg/m³', '±10 μg/m³', '4x4x1.2 cm'),
+'μg/m³', 4 ,  'UART', 45, '0~1000 μg/m³', '±10 μg/m³', '4x4x1.2 cm'),
 
 -- 공기질 센서
 ('CCS811 공기질 센서', 'sensor', '공기질', 17000,
 '/uploads/ccs811.jpg',
 'VOC 및 eCO₂ 센서',
 'I²C 통신, 실내 공기질 측정, 저전력 설계',
-'ppm', 'I2C', 80, 'VOC: 0~1187 ppb, eCO2: 400~8192 ppm', '±15%', '3x3x1 cm');
+'ppm', 4 , 'I2C', 80, 'VOC: 0~1187 ppb, eCO2: 400~8192 ppm', '±15%', '3x3x1 cm');
 
-INSERT INTO store (name, type, subtype, price, image_url, description, details, unit, communication, stock, size, measurement_range, accuracy) VALUES
+INSERT INTO store (name, type, subtype, price, image_url, description, details, gpio_pin, communication, stock, size, measurement_range, accuracy) VALUES
 -- 릴레이
 (
   'SSR-40DA 고체계전기 릴레이', 'actuator', '릴레이', 15000,
   '/uploads/ssr40da.jpg',
   '220V 고전압 부하 제어용 SSR 모듈',
   '40A까지 견디는 고체계전기 릴레이, ESP32 GPIO로 제어 가능, 소음 및 기계적 마모 없음, 내습 케이스 별도 구매 가능',
-  'ON/OFF', '릴레이', 100, '75x45x30 mm', NULL, NULL
+ 5,  '릴레이', 100, '75x45x30 mm', NULL, NULL
 ),
 
 -- 모터
@@ -295,40 +303,40 @@ INSERT INTO store (name, type, subtype, price, image_url, description, details, 
 '/uploads/curtain_motor.jpg',
 '광량 및 온도 센서 연동 가능한 자동 커튼 모터',
 '온실 차광막 자동 개폐에 적합하며, ESP32 릴레이로 제어 가능',
-'ON/OFF', '릴레이', 35, '300 x 200 x 100 mm', NULL, NULL),
+5, '릴레이', 35, '300 x 200 x 100 mm', NULL, NULL),
 
 -- 펌프
 ('서브머지 급수 펌프', 'actuator', '펌프', 38400,
 '/uploads/submersible_pump.jpg',
 '자동 급수 시스템에 적합한 220V 펌프',
 '수경재배 및 토양 급수용으로 ESP32와 릴레이 연동 제어 가능',
-'L/min', '릴레이', 40, '150 x 150 x 200 mm', NULL, NULL),
+5,  '릴레이', 40, '150 x 150 x 200 mm', NULL, NULL),
 
 -- 밸브
 ('전자 솔레노이드 밸브', 'actuator', '밸브', 16400,
 '/uploads/solenoid_valve.jpg',
 '220V 자동 관개용 전자 밸브, 스테인리스 재질',
 '수로 개폐 자동화에 적합하며, ESP32 릴레이 제어 가능',
-'ON/OFF', '릴레이', 45, '100 x 50 x 50 mm', NULL, NULL),
+ 5,  '릴레이', 45, '100 x 50 x 50 mm', NULL, NULL),
 
 -- 환풍기
-('iLIVING ILG8SF24V 산업용 환풍기', 'actuator', '환풍기', 310990, '/uploads/ilg8sf24v.jpg', '온실 환기용 220V 환풍기, 온습도 센서 연동 자동 제어', '24인치, 4244 CFM, 알루미늄 블레이드, 자동 셔터, UL 인증', 'CFM', '릴레이', 25, '24인치 팬', NULL, NULL),
+('iLIVING ILG8SF24V 산업용 환풍기', 'actuator', '환풍기', 310990, '/uploads/ilg8sf24v.jpg', '온실 환기용 220V 환풍기, 온습도 센서 연동 자동 제어', '24인치, 4244 CFM, 알루미늄 블레이드, 자동 셔터, UL 인증', 5 , '릴레이', 25, '24인치 팬', NULL, NULL),
 
 -- 히터
-('Vornado VH10 전기 히터', 'actuator', '히터', 69990, '/uploads/heater.jpg', '야외 온실용 전기 히터, 자동 온도 조절 기능', '1500W 출력, 2단계 난방 설정, 자동 안전 차단 기능, 외부 사용 가능', '℃', '릴레이', 20, '11.7 x 9.3 x 12 인치', NULL, NULL),
+('Vornado VH10 전기 히터', 'actuator', '히터', 69990, '/uploads/heater.jpg', '야외 온실용 전기 히터, 자동 온도 조절 기능', '1500W 출력, 2단계 난방 설정, 자동 안전 차단 기능, 외부 사용 가능', 5 , '릴레이', 20, '11.7 x 9.3 x 12 인치', NULL, NULL),
 
 -- 냉방기
-('Honeywell CO60PM 소형 팬 냉방기', 'actuator', '냉방기', 250000, '/uploads/cooler.jpg', '온실용 소형 팬 냉방 장치, 온도 센서 연동 가능', '1540 CFM, 물 용량 60L, 3단 속도 조절, 연속 급수 연결 가능', '℃', '릴레이', 15, '27.6 x 18.3 x 40.04 인치', NULL, NULL),
+('Honeywell CO60PM 소형 팬 냉방기', 'actuator', '냉방기', 250000, '/uploads/cooler.jpg', '온실용 소형 팬 냉방 장치, 온도 센서 연동 가능', '1540 CFM, 물 용량 60L, 3단 속도 조절, 연속 급수 연결 가능', 5 , '릴레이', 15, '27.6 x 18.3 x 40.04 인치', NULL, NULL),
 
 -- 영양분공급기
 ('JONFLYER GEN II 비료 인젝터', 'actuator', '영양분공급기', 129000,
 '/uploads/fertilizer_injector.jpg',
 '액체 비료 자동 공급용 인젝터, 야외 사용 가능',
 '0.2~4.5% 비율 조절, 내구성 있는 POM 하우징, 역류 방지 밸브 포함',
-'ml/min', '릴레이', 15, '12 x 4 x 4 인치', NULL, NULL),
+ 5 , '릴레이', 15, '12 x 4 x 4 인치', NULL, NULL),
 
 -- 스프링클러
-('Hunter PGP Ultra 회전식 스프링클러', 'actuator', '스프링클러', 12990, '/uploads/pgp-ultra.jpg', '토양 및 작물 급수용 자동 스프링클러, ESP32 릴레이 제어 가능', '회전 범위 50~360도, 유량 범위 0.5~14 GPM, 외부 사용 가능', 'ON/OFF', '릴레이', 20, '7.9 x 2.5 인치', NULL, NULL);
+('Hunter PGP Ultra 회전식 스프링클러', 'actuator', '스프링클러', 12990, '/uploads/pgp-ultra.jpg', '토양 및 작물 급수용 자동 스프링클러, ESP32 릴레이 제어 가능', '회전 범위 50~360도, 유량 범위 0.5~14 GPM, 외부 사용 가능', 5 , '릴레이', 20, '7.9 x 2.5 인치', NULL, NULL);
 
 
 

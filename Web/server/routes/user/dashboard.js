@@ -102,9 +102,9 @@ router.get('/user/dashboard/:farmId', async (req, res) => {
     // 최신 센서 데이터 (최근 1개)
     const recentSensorData = await pool.query(`
       SELECT time, 
-         MAX(CASE WHEN sensor_logs.sensor_type = 'temperature' THEN sensor_value END) AS temperature,
-         MAX(CASE WHEN sensor_logs.sensor_type = 'humidity' THEN sensor_value END) AS humidity,
-         MAX(CASE WHEN sensor_logs.sensor_type = 'soil_moisture' THEN sensor_value END) AS soil_moisture
+         MAX(CASE WHEN sensor_logs.sensor_type = '온도' THEN sensor_value END) AS temperature,
+         MAX(CASE WHEN sensor_logs.sensor_type = '습도' THEN sensor_value END) AS humidity,
+         MAX(CASE WHEN sensor_logs.sensor_type = '토양 수분' THEN sensor_value END) AS soil_moisture
       FROM sensor_logs
       JOIN sensors ON sensor_logs.sensor_id = sensors.sensor_id
       JOIN esps ON sensors.esp_id = esps.esp_id 
@@ -118,9 +118,9 @@ router.get('/user/dashboard/:farmId', async (req, res) => {
     const hourlyAverages = await pool.query(`
       SELECT
         time_bucket('1 hour', sensor_logs.time) AS hour,
-        AVG(CASE WHEN sensor_logs.sensor_type = 'temperature' THEN sensor_logs.sensor_value END) AS avg_temperature,
-        AVG(CASE WHEN sensor_logs.sensor_type = 'humidity' THEN sensor_logs.sensor_value END) AS avg_humidity,
-        AVG(CASE WHEN sensor_logs.sensor_type = 'soil_moisture' THEN sensor_logs.sensor_value END) AS avg_soil_moisture
+        AVG(CASE WHEN sensor_logs.sensor_type = '온도' THEN sensor_logs.sensor_value END) AS avg_temperature,
+        AVG(CASE WHEN sensor_logs.sensor_type = '습도' THEN sensor_logs.sensor_value END) AS avg_humidity,
+        AVG(CASE WHEN sensor_logs.sensor_type = '토양 수분' THEN sensor_logs.sensor_value END) AS avg_soil_moisture
       FROM sensor_logs
       JOIN sensors ON sensor_logs.sensor_id = sensors.sensor_id
       JOIN esps ON sensors.esp_id = esps.esp_id

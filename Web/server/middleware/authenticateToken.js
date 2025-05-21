@@ -17,9 +17,6 @@ const authenticateToken = (req, res, next) => {
       console.error('유효하지 않은 토큰:', err);
       return res.status(403).json({ message: "유효하지 않은 토큰입니다." });
     }
-    
-    // 인증된 사용자 정보
-    console.log('인증된 사용자:', user);
 
     req.user = user;
     next();

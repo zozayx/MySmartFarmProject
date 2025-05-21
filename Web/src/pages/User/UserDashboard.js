@@ -290,10 +290,10 @@ useEffect(() => {
                 <h5 className="text-dark fw-bold">🌡️ 센서 목록</h5>
                 {data.sensors.map((sensor) => (
                   <p key={sensor.id}>
-                    {sensor.type === "temperature" && "🌡 온도 센서"}
-                    {sensor.type === "humidity" && "💧 습도 센서"}
-                    {sensor.type === "soil_moisture" && "🌱 토양 습도 센서"}
-                    {!["temperature", "humidity", "soil_moisture"].includes(sensor.type) && `📟 ${sensor.type} 센서`}
+                    {sensor.type === "온도" && "🌡 온도 센서"}
+                    {sensor.type === "습도" && "💧 습도 센서"}
+                    {sensor.type === "토양 수분" && "🌱 토양 수분 센서"}
+                    {!["온도", "습도", "토양 수분"].includes(sensor.type) && `📟 ${sensor.name} 센서`}
                     : <strong style={{ color: sensor.active ? 'green' : 'red' }}>
                       {sensor.active ? "작동중" : "정지됨"}
                       </strong>
@@ -330,7 +330,7 @@ useEffect(() => {
                       </>
                     )}
                     {!["LED", "급수", "팬"].includes(device.type) && (
-                      `⚙️ ${device.type}`
+                      `⚙️ ${device.name}`
                     )}
                     : 
                     <strong 

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Container, Modal, Button } from "react-bootstrap";
-import { FaTrash, FaWifi, FaLeaf } from "react-icons/fa"; // 아이콘 추가
+import { FaTrash, FaWifi, FaLeaf } from "react-icons/fa";
 import { usePopup } from "../../context/PopupContext";
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-function DeleteButton({ farmId, espId, sensorId, actuatorId, type, onDelete }) {
+function DeleteButton({ farmId, espId, type, onDelete }) {
   const { showPopup } = usePopup();  // showPopup 함수 사용
 
   const handleDelete = () => {
@@ -25,11 +25,8 @@ function DeleteButton({ farmId, espId, sensorId, actuatorId, type, onDelete }) {
             deleteUrl = `${BASE_URL}/user/farm/${farmId}`;
           } else if (type === 'esp') {
             deleteUrl = `${BASE_URL}/user/farm/${farmId}/esp/${espId}`;
-          } else if (type === 'sensor') {
-            deleteUrl = `${BASE_URL}/user/farm/esp/${espId}/sensor/${sensorId}`;
-          } else if (type === 'actuator') {
-            deleteUrl = `${BASE_URL}/user/farm/esp/${espId}/actuator/${actuatorId}`;
           }
+          // 센서/액추에이터 삭제는 더 이상 지원하지 않음
           
           const response = await fetch(deleteUrl, {
             method: 'DELETE',
@@ -78,22 +75,19 @@ const UserFarmManagement = () => {
   const [farms, setFarms] = useState([]);
   const [espDetails, setEspDetails] = useState(null); // ESP 세부 정보를 저장할 상태
   const [activeModal, setActiveModal] = useState(null); // 어떤 모달이 열려있는지 추적
-  const [newEspName, setNewEspName] = useState("");  // ESP 이름 상태
   const [newEspIp, setNewEspIp] = useState("");  // ESP IP 주소 상태
   const [submitted, setSubmitted] = useState(false);
   const [farmId, setFarmId] = useState(null); // farmId 상태 추가
-  const [deviceType, setDeviceType] = useState('sensor');  // 장치 타입 (sensor / actuator)
-  const [sensorType, setSensorType] = useState('');  // 센서 타입
-  const [actuatorType, setActuatorType] = useState('');  // 제어 장치 타입
   const [deviceName, setDeviceName] = useState('');  // 장치 이름
-  const [gpioPin, setGpioPin] = useState(4);  // GPIO 핀 번호
-  const [espId, setEspId] = useState(null);
+  const [unassignedDevices, setUnassignedDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
+  const [showDeviceModal, setShowDeviceModal] = useState(false);
+  const [allDevices, setAllDevices] = useState([]);
+  const [deletingDeviceId, setDeletingDeviceId] = useState(null);
+  const [farmIdToName, setFarmIdToName] = useState({});
 
   // IP랑 Serial 번호 형식
   const isValidIp = (ip) => /^(\d{1,3}\.){3}\d{1,3}$/.test(ip);
-
-  // GPIO 핀 번호 선택을 위한 핀 번호 리스트
-  const gpioPins = [4, 5, 13, 14, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33];
 
   useEffect(() => {
     // 농장 정보를 가져오는 API 호출
@@ -140,18 +134,6 @@ const UserFarmManagement = () => {
       .catch(error => console.error("Error fetching farm data after delete:", error));
   };
 
-  // 센서, 액추에이터 삭제 후 화면 갱신
-  const refreshEspDetails = (farmId, espId) => {
-    fetch(`${BASE_URL}/user/farm/${farmId}/esp/${espId}`, {
-      method: 'GET',
-      credentials: 'include',
-    })
-      .then(response => response.json())
-      .then(data => {
-        setEspDetails(data); // 모달 안 내용 갱신
-      })
-      .catch(error => console.error("Error refreshing ESP details:", error));
-  };
 
   // 모달 닫기
   const handleCloseModal = () => {
@@ -159,126 +141,98 @@ const UserFarmManagement = () => {
     setEspDetails(null); 
 };
 
+  // ESP 추가 모달 열릴 때마다 미할당 장치 목록 fetch
+  useEffect(() => {
+    if (activeModal === 'addEsp') {
+      fetch(`${BASE_URL}/user/devices/unassigned`, { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => setUnassignedDevices(Array.isArray(data) ? data : []));
+    }
+  }, [activeModal]);
+
   // ESP 추가 모달 열기
   const handleAddEsp = (farmId) => {
-    setFarmId(farmId); // farmId 상태를 업데이트
-    setNewEspName("");  // 이름 초기화
-    setNewEspIp("");  // IP 초기화
-    setActiveModal('addEsp');  // ESP 추가 모달 열기
-  }
+    setFarmId(farmId);
+    setNewEspIp("");
+    setDeviceName("");
+    setSelectedDeviceId("");
+    setSubmitted(false);
+    setActiveModal('addEsp');
+  };
 
   // ESP 추가 API 호출
-  const handleAddEspSubmit = () => {
-    
-    setSubmitted(true); // 제출 버튼 눌림 표시
-
-    // 유효성 검사: 입력값이 없거나 형식이 틀리면 중단
-    if (!newEspName || !newEspIp ||  !isValidIp(newEspIp) ) {
-      return; // 유효하지 않으면 API 호출하지 않음
-    }
-
-    const newEspData = {
-      esp_name: newEspName,
-      ip_address: newEspIp,
-    };
-
-    fetch(`${BASE_URL}/user/farm/${farmId}/esp`, {
+  const handleAssignDevice = () => {
+    setSubmitted(true);
+    if (!selectedDeviceId || !deviceName || !newEspIp || !isValidIp(newEspIp)) return;
+    const selectedDevice = unassignedDevices.find(dev => dev.device_id === selectedDeviceId);
+    const gpioPin = selectedDevice?.gpio_pin;
+    fetch(`${BASE_URL}/user/devices/${selectedDeviceId}/assign`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newEspData),
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
+      body: JSON.stringify({
+        farm_id: farmId,
+        esp_ip: newEspIp,
+        gpio_pin: gpioPin,
+        custom_name: deviceName
+      })
     })
-      .then(response => {
-        if (response.status === 201) {
-          alert('ESP가 추가되었습니다!');
-          setNewEspName(''); // 입력값 초기화
-          setNewEspIp('');
-          setSubmitted(false); // 제출 상태 초기화
-          setActiveModal(null); // 모달 닫기
-          refreshFarms();  // 농장 정보 갱신
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('장치가 할당되었습니다!');
+          setActiveModal(null);
+          refreshFarms();
         } else {
-          alert('서버 오류가 발생했습니다. 다시 시도해주세요.');
+          alert(data.error || '서버 오류가 발생했습니다. 다시 시도해주세요.');
         }
       })
       .catch(error => {
-        console.error("Error adding ESP:", error);
         alert('서버 오류가 발생했습니다. 다시 시도해주세요.');
       });
   };
-  
-  const handleAddDevice = (farmId, espId) => {
-    // 모달 입력값 초기화
-    setDeviceType('sensor');
-    setSensorType('');
-    setActuatorType('');
-    setDeviceName('');
-    setGpioPin(4);
 
-    // 선택된 농장과 ESP 저장
-    setFarmId(farmId);
-    setEspId(espId);
+  // 장치 관리 모달 열기
+  const handleShowDeviceModal = () => {
+    fetch(`${BASE_URL}/user/devices/all`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        setAllDevices(Array.isArray(data) ? data : []);
+        // farmId -> farmName 매핑 생성
+        const map = {};
+        farms.forEach(farm => { map[farm.farm_id] = farm.farm_name; });
+        setFarmIdToName(map);
+        setShowDeviceModal(true);
+      });
+  };
+  const handleCloseDeviceModal = () => setShowDeviceModal(false);
 
-    // 모달 열기
-    setActiveModal('addDevice');
-};
-
-  // 장치 추가 제출
-  const handleAddDeviceSubmit = () => {
-    setSubmitted(true);
-
-    if (
-      !deviceName ||
-      (deviceType === 'sensor' && !sensorType) ||
-      (deviceType === 'actuator' && !actuatorType)
-    ) {
-      return; // 입력이 부족하면 중단
-    }
-
-    const newDeviceData = {
-      device_name: deviceName,
-      gpio_pin: parseInt(gpioPin, 10),
-      deviceType: deviceType,
-    };
-
-    // 센서일 경우
-    if (deviceType === 'sensor') {
-        newDeviceData.sensor_type = sensorType;
-    }
-    // 제어장치일 경우
-    if (deviceType === 'actuator') {
-        newDeviceData.actuator_type = actuatorType;
-    }
-
-    fetch(`${BASE_URL}/user/farm/${farmId}/esp/${espId}/device`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newDeviceData),
-        credentials: 'include',
+  // 장치 영구삭제
+  const handleDeleteDevice = (device_id) => {
+    if (!window.confirm('정말로 이 장치를 영구 삭제하시겠습니까?')) return;
+    setDeletingDeviceId(device_id);
+    fetch(`${BASE_URL}/user/devices/${device_id}`, {
+      method: 'DELETE',
+      credentials: 'include',
     })
-        .then(response => {
-            if (response.status === 201) {
-                alert('장치가 추가되었습니다!');
-                refreshEspDetails(farmId, espId); // 추가: 장치 추가 후 ESP 상세 정보 갱신
-                setActiveModal(null);  // 모달 닫기
-            } else {
-                alert('서버 오류가 발생했습니다. 다시 시도해주세요.');
-            }
-        })
-        .catch(error => {
-            console.error("Error adding device:", error);
-            alert('서버 오류가 발생했습니다. 다시 시도해주세요.');
-        });
+      .then(res => res.json())
+      .then(() => {
+        setAllDevices(devs => devs.filter(d => d.device_id !== device_id));
+        setDeletingDeviceId(null);
+      })
+      .catch(() => setDeletingDeviceId(null));
   };
 
   return (
     <Container fluid style={{ backgroundColor: "#ffffff", minHeight: "100vh", paddingTop: "50px" }}>
-      <h2 className="text-center text-dark mb-4" style={{ color: "#3c8d40" }}>🌱 내 농장 관리</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="text-center text-dark mb-0" style={{ color: "#3c8d40" }}>🌱 내 농장 관리</h2>
+        <Button variant="outline-primary" size="sm" onClick={handleShowDeviceModal}>
+          장치 관리
+        </Button>
+      </div>
       {farms.length > 0 ? (
-        farms.map(farm => (
+        farms.map((farm, idx) => (
           <div key={farm.farm_id} className="mb-5">
             <Card className="mb-4 shadow" style={{ borderRadius: "15px", backgroundColor: "#f1f8f4", border: "1px solid #ddd" }}>
               <Card.Body>
@@ -287,7 +241,7 @@ const UserFarmManagement = () => {
                   <FaLeaf style={{ color: "#3c8d40", marginRight: "10px" }} /> {farm.farm_name}
                 </h3>
                 <div className="d-flex gap-2">
-                    <Button variant="success" size="sm" onClick={() => handleAddEsp(farm.farm_id)}>
+                  <Button variant="success" size="sm" onClick={() => handleAddEsp(farm.farm_id)}>
                     + ESP 추가
                   </Button>
                   <DeleteButton farmId={farm.farm_id} type="farm" onDelete={refreshFarms} />
@@ -298,51 +252,59 @@ const UserFarmManagement = () => {
                   {farm.esps.length > 0 ? (
                     farm.esps.map(esp => (
                       <Col key={esp.esp_id} sm={12} md={6} lg={4}>
-                        <Card
-                          className="mb-4 shadow"
-                          style={{
-                            borderRadius: "15px",
-                            backgroundColor: "#eaf2e6",
-                            border: "1px solid #ddd",
-                            cursor: "pointer",
-                            height: '100%',
-                          }}
-                        >
+                        <Card className="mb-4 shadow-sm" style={{
+                          borderRadius: "16px",
+                          background: "#f8fafc",
+                          border: "1px solid #e0e0e0",
+                          minHeight: 220,
+                          position: "relative"
+                        }}>
                           <Card.Body>
-                          <div className="d-flex justify-content-between align-items-center">
-                            <Card.Title className="text-dark" style={{ color: "#3c8d40" }}>
-                              <FaWifi style={{ color: esp.is_connected ? "#28a745" : "#dc3545", marginRight: "10px" }} />
-                              {esp.esp_name}
-                            </Card.Title>
-                            <div className="d-flex gap-2">
-                              <Button variant="success" size="sm" onClick={() => handleAddDevice(farm.farm_id, esp.esp_id)}>
-                                + 장치 추가
+                            <div className="d-flex align-items-center mb-2">
+                              <div style={{
+                                fontSize: 32,
+                                color: esp.is_connected ? "#28a745" : "#dc3545",
+                                marginRight: 12
+                              }}>
+                                <FaWifi />
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: 20 }}>
+                                  {esp.device?.name || esp.esp_name}
+                                </div>
+                                <span className="badge bg-light text-dark border" style={{ fontSize: 13 }}>
+                                  {esp.device?.type === "sensor" ? "센서" : "제어장치"}
+                                </span>
+                                {esp.is_connected ? (
+                                  <span className="badge bg-success ms-2">연결됨</span>
+                                ) : (
+                                  <span className="badge bg-danger ms-2">연결 안 됨</span>
+                                )}
+                              </div>
+                            </div>
+                            <hr style={{ margin: "10px 0" }} />
+                            <div style={{ fontSize: 15, color: "#444" }}>
+                              <div><b>타입명:</b> {esp.device?.device_type}</div>
+                              <div><b>GPIO 핀:</b> {esp.device?.gpio_pin}</div>
+                              <div><b>IP:</b> {esp.ip_address}</div>
+                            </div>
+                            <div className="d-flex justify-content-end mt-3">
+                              <Button
+                                variant="outline-success"
+                                size="sm"
+                                onClick={() => fetchEspDetails(farm.farm_id, esp.esp_id)}
+                                style={{ borderRadius: 8, marginRight: 8 }}
+                              >
+                                세부 정보
                               </Button>
                               <DeleteButton farmId={farm.farm_id} espId={esp.esp_id} type="esp" onDelete={refreshFarms} />
-                            </div>
-                          </div>
-                            <Card.Text className="text-muted">
-                              <strong>IP 주소:</strong> {esp.ip_address || "N/A"}<br />
-                              <strong>연결 상태:</strong> {esp.is_connected ? "연결됨" : "연결 안 됨"}
-                            </Card.Text>
-                            {/* 버튼을 카드 맨 아래로 보내기 */}
-                            <div className="mt-auto">
-                                <Button
-                                variant="outline-success"
-                                onClick={() => fetchEspDetails(farm.farm_id, esp.esp_id)}
-                                style={{ width: "100%" }}
-                                >
-                                세부 정보
-                                </Button> 
                             </div>
                           </Card.Body>
                         </Card>
                       </Col>
                     ))
                   ) : (
-                    <Col sm={12}>
-                      <p className="text-muted">ESP 정보가 없습니다.</p>
-                    </Col>
+                    <Col sm={12}><p>장치(ESP) 정보가 없습니다.</p></Col>
                   )}
                 </Row>
               </Card.Body>
@@ -358,217 +320,176 @@ const UserFarmManagement = () => {
       {activeModal === 'addEsp' && (
           <Modal show={true} onHide={handleCloseModal} centered>
           <Modal.Header closeButton>
-            <Modal.Title>ESP 추가</Modal.Title>
+            <Modal.Title>장치(ESP) 할당</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <div className="mb-3">
-              <label htmlFor="espName" className="form-label">ESP 이름</label>
+              <label className="form-label">내 미할당 장치</label>
+              <select
+                className="form-select"
+                value={selectedDeviceId}
+                onChange={e => setSelectedDeviceId(e.target.value)}
+              >
+                <option value="">장치를 선택하세요</option>
+                {unassignedDevices.map(dev => (
+                  <option key={dev.device_id} value={dev.device_id}>
+                    [{dev.device_type === 'sensor' ? '센서' : '제어장치'}] {dev.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="form-label">설정할 이름</label>
               <input
                 type="text"
-                className={`form-control ${submitted && !newEspName ? 'is-invalid' : ''}`}
-                id="espName"
-                placeholder="예: 온실 앞문 ESP1"
-                value={newEspName}
-                onChange={(e) => setNewEspName(e.target.value)}
+                className={`form-control ${submitted && !deviceName ? 'is-invalid' : ''}`}
+                value={deviceName}
+                onChange={e => setDeviceName(e.target.value)}
               />
-              {submitted && !newEspName && (
-                <div className="invalid-feedback">이름을 입력해주세요.</div>
+              {submitted && !deviceName && (
+                <div className="invalid-feedback">장치 이름을 입력해주세요.</div>
               )}
             </div>
             <div className="mb-3">
-              <label htmlFor="espIp" className="form-label">IP 주소</label>
+              <label className="form-label">IP 주소</label>
               <input
                 type="text"
                 className={`form-control ${submitted && (!newEspIp || !isValidIp(newEspIp)) ? 'is-invalid' : ''}`}
-                id="espIp"
-                placeholder="예: 192.168.0.100"
                 value={newEspIp}
-                onChange={(e) => setNewEspIp(e.target.value)}
+                onChange={e => setNewEspIp(e.target.value)}
               />
               {submitted && !newEspIp && (
                 <div className="invalid-feedback">IP 주소를 입력해주세요.</div>
               )}
               {submitted && newEspIp && !isValidIp(newEspIp) && (
-                <div className="invalid-feedback">올바른 IP 주소 형식으로 입력해주세요. (예: 192.168.0.100)</div>
+                <div className="invalid-feedback">올바른 IP 주소 형식으로 입력해주세요.</div>
               )}
+            </div>
+            <div className="mb-3">
+              <label className="form-label">GPIO 핀 번호</label>
+              <input
+                type="text"
+                className="form-control"
+                value={
+                  selectedDeviceId
+                    ? (unassignedDevices.find(dev => String(dev.device_id) === String(selectedDeviceId))?.gpio_pin ?? "")
+                    : ""
+                }
+                readOnly
+              />
             </div>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="success" onClick={handleAddEspSubmit}>추가 및 연결</Button>
+            <Button
+              variant="success"
+              onClick={handleAssignDevice}
+              disabled={!selectedDeviceId || !deviceName || !newEspIp || !isValidIp(newEspIp)}
+            >
+              할당
+            </Button>
             <Button variant="secondary" onClick={handleCloseModal}>취소</Button>
           </Modal.Footer>
         </Modal>  
       )}
 
-      {/* 장치 추가 모달 UI*/}
-      {activeModal === 'addDevice' && (
-          <Modal show={true} onHide={handleCloseModal} centered>
-              <Modal.Header closeButton>
-                  <Modal.Title>장치 추가</Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                  <div className="mb-3">
-                      <label htmlFor="deviceType" className="form-label">장치 종류</label>
-                      <select
-                          className="form-select"
-                          id="deviceType"
-                          value={deviceType}
-                          onChange={(e) => setDeviceType(e.target.value)}
-                      >
-                          <option value="sensor">센서</option>
-                          <option value="actuator">제어 장치</option>
-                      </select>
-                  </div>
-
-                  {deviceType === 'sensor' && (
-                      <div className="mb-3">
-                        <label htmlFor="sensorType" className="form-label">센서 타입</label>
-                        <input
-                          type="text"
-                          className={`form-control ${submitted && !sensorType ? 'is-invalid' : ''}`}
-                          id="sensorType"
-                          value={sensorType}
-                          onChange={(e) => setSensorType(e.target.value)}
-                        />
-                        {submitted && !sensorType && (
-                          <div className="invalid-feedback">센서 타입을 입력해주세요.</div>
-                        )}
-                      </div>
-                    )}
-                  {deviceType === 'actuator' && (
-                      <div className="mb-3">
-                        <label htmlFor="actuatorType" className="form-label">제어 장치 타입</label>
-                        <input
-                          type="text"
-                          className={`form-control ${submitted && !actuatorType ? 'is-invalid' : ''}`}
-                          id="actuatorType"
-                          value={actuatorType}
-                          onChange={(e) => setActuatorType(e.target.value)}
-                        />
-                        {submitted && !actuatorType && (
-                          <div className="invalid-feedback">제어 장치 타입을 입력해주세요.</div>
-                        )}
-                      </div>
-                    )}
-                  <div className="mb-3">
-                    <label htmlFor="deviceName" className="form-label">장치 이름</label>
-                    <input
-                      type="text"
-                      className={`form-control ${submitted && !deviceName ? 'is-invalid' : ''}`}
-                      id="deviceName"
-                      placeholder="예: 동쪽 팬, 온실 온도센서"
-                      value={deviceName}
-                      onChange={(e) => setDeviceName(e.target.value)}
-                    />
-                    {submitted && !deviceName && (
-                      <div className="invalid-feedback">장치 이름을 입력해주세요.</div>
-                    )}
-                  </div>
-
-                  <div className="mb-3">
-                      <label htmlFor="gpioPin" className="form-label">GPIO 핀 번호</label>
-                        <select
-                            className="form-select"
-                            id="gpioPin"
-                            value={gpioPin || 4}
-                            onChange={(e) => setGpioPin(e.target.value)}
-                          >
-                          {gpioPins.map(pin => (
-                              <option key={pin} value={pin}>{pin}</option>
-                          ))}
-                      </select>
-                  </div>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button variant="success" onClick={handleAddDeviceSubmit}>추가 및 연결</Button>
-                <Button variant="secondary" onClick={handleCloseModal}>취소</Button>
-              </Modal.Footer>
-          </Modal>
-      )}
-
       {/* ESP 세부 정보 모달 */}
       {espDetails && (
         <Modal show={true} onHide={handleCloseModal} centered>
-          <Modal.Header closeButton style={{ backgroundColor: "#eaf2e6", borderBottom: "1px solid #ddd" }}>
-            <Modal.Title>{espDetails.esp_name} 장치 정보</Modal.Title>
+          <Modal.Header closeButton style={{ background: "#f1f8f4", borderBottom: "1px solid #e0e0e0" }}>
+            <div className="d-flex align-items-center w-100">
+              <div style={{
+                fontSize: 36,
+                color: espDetails.is_connected ? "#28a745" : "#dc3545",
+                marginRight: 16
+              }}>
+                <FaWifi />
+              </div>
+              <div>
+                <Modal.Title style={{ fontWeight: 700, fontSize: 22 }}>
+                  {espDetails.device?.name || espDetails.esp_name}
+                </Modal.Title>
+                <div>
+                  <span className="badge bg-light text-dark border me-2">
+                    {espDetails.device?.type === "sensor" ? "센서" : "제어장치"}
+                  </span>
+                  {espDetails.is_connected ? (
+                    <span className="badge bg-success">연결됨</span>
+                  ) : (
+                    <span className="badge bg-danger">연결 안 됨</span>
+                  )}
+                </div>
+              </div>
+            </div>
           </Modal.Header>
-          <Modal.Body>
-            <h5 className="text-dark"><strong>IP 주소:</strong> {espDetails.ip_address}</h5>
-            <p className="text-muted"><strong>연결 상태:</strong> {espDetails.is_connected ? "연결됨" : "연결 안 됨"}</p>
-
-            {/* 센서 목록 */}
-            <h6 className="text-dark"><strong>센서 목록:</strong></h6>
-            <Row className="g-4">
-              {espDetails.sensors && espDetails.sensors.length > 0 ? (
-                espDetails.sensors.map(sensor => (
-                  <Col key={sensor.sensor_id} sm={12} md={6} lg={4}>
-                    <Card className="mb-4 shadow" style={{ borderRadius: "15px", backgroundColor: "#eaf2e6", border: "1px solid #ddd" }}>
-                      <Card.Body style={{ position: 'relative', paddingBottom: '3rem' }}>
-                        <Card.Title>{sensor.sensor_name}</Card.Title>
-                        <Card.Text className="text-muted">
-                          <strong>GPIO Pin:</strong> {sensor.gpio_pin}
-                          <br />
-                          <strong>상태:</strong> {sensor.is_active ? "작동 중" : "작동 안 됨"}
-                        </Card.Text>
-                        <div style={{ position: 'absolute', bottom: '1rem', right: '1rem' }}>
-                          <DeleteButton 
-                            espId={espDetails.esp_id} 
-                            sensorId={sensor.sensor_id} 
-                            type="sensor" 
-                            onDelete={() => {
-                              refreshEspDetails(espDetails.farm_id, espDetails.esp_id); // 삭제 후 상태 갱신
-                            }}
-                          />
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))
-              ) : (
-                <p className="text-muted">센서 정보가 없습니다.</p>
-              )}
-            </Row>
-
-            {/* 액추에이터 목록 */}
-            <h6 className="text-dark"><strong>액추에이터 목록:</strong></h6>
-            <Row className="g-4">
-              {espDetails.actuators && espDetails.actuators.length > 0 ? (
-                espDetails.actuators.map(actuator => (
-                  <Col key={actuator.actuator_id} sm={12} md={6} lg={4}>
-                    <Card className="mb-4 shadow" style={{ borderRadius: "15px", backgroundColor: "#eaf2e6", border: "1px solid #ddd" }}>
-                      <Card.Body style={{ position: 'relative', paddingBottom: '3rem' }}>
-                        <Card.Title>{actuator.actuator_name}</Card.Title>
-                        <Card.Text className="text-muted">
-                          <strong>GPIO Pin:</strong> {actuator.gpio_pin}
-                          <br />
-                          <strong>상태:</strong> {actuator.is_active ? "작동 중" : "작동 안 됨"}
-                        </Card.Text>
-                        <div style={{ position: 'absolute', bottom: '1rem', right: '1rem' }}>
-                          <DeleteButton 
-                            espId={espDetails.esp_id} 
-                            actuatorId={actuator.actuator_id} 
-                            type="actuator" 
-                            onDelete={() => {
-                              refreshEspDetails(espDetails.farm_id, espDetails.esp_id); // 삭제 후 상태 갱신
-                            }}
-                          />
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))
-              ) : (
-                <p className="text-muted">액추에이터 정보가 없습니다.</p>
-              )}
-            </Row>
+          <Modal.Body style={{ background: "#f8fafc" }}>
+            <div style={{ fontSize: 16, color: "#333" }}>
+            <div className="mb-2"><b>장치 이름(구매명):</b> {espDetails.device?.device_name}</div>
+            <div className="mb-2"><b>설정 이름:</b> {espDetails.device?.name}</div>
+            <div className="mb-2"><b>타입명:</b> {espDetails.device?.device_type}</div>
+            <div className="mb-2"><b>GPIO 핀:</b> {espDetails.device?.gpio_pin}</div>
+            <div className="mb-2"><b>IP 주소:</b> {espDetails.ip_address}</div>
+            </div>
           </Modal.Body>
-          <Modal.Footer style={{ backgroundColor: "#eaf2e6", borderTop: "1px solid #ddd" }}>
-            <Button variant="secondary" onClick={handleCloseModal} style={{ width: "100%", borderRadius: "10px" }}>
+          <Modal.Footer style={{ background: "#f1f8f4", borderTop: "1px solid #e0e0e0" }}>
+            <Button variant="secondary" onClick={handleCloseModal} style={{ width: "100%", borderRadius: 10 }}>
               닫기
             </Button>
           </Modal.Footer>
         </Modal>
       )}
+
+      {/* 장치 관리 모달 */}
+      <Modal show={showDeviceModal} onHide={handleCloseDeviceModal} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>내 장치 관리</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <table className="table table-bordered align-middle">
+            <thead>
+              <tr>
+                <th>이름</th>
+                <th>타입</th>
+                <th>GPIO</th>
+                <th>상태</th>
+                <th>할당 정보</th>
+                <th>관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allDevices.length === 0 ? (
+                <tr><td colSpan={6} className="text-center">장치가 없습니다.</td></tr>
+              ) : (
+                allDevices.map(device => (
+                  <tr key={device.device_id}>
+                    <td>{device.name}</td>
+                    <td>{device.device_type}</td>
+                    <td>{device.gpio_pin}</td>
+                    <td>{device.status === 'assigned' ? '할당됨' : device.status === 'unassigned' ? '미할당' : device.status}</td>
+                    <td>
+                      {device.status === 'assigned' && device.assigned_farm_id && farmIdToName[device.assigned_farm_id]
+                        ? `[${farmIdToName[device.assigned_farm_id]}]`
+                        : '[미할당]'}
+                    </td>
+                    <td>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        disabled={deletingDeviceId === device.device_id}
+                        onClick={() => handleDeleteDevice(device.device_id)}
+                      >
+                        {deletingDeviceId === device.device_id ? '삭제중...' : '영구삭제'}
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseDeviceModal}>닫기</Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };

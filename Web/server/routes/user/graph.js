@@ -49,9 +49,9 @@ router.get('/user/sensor-data', async (req, res) => {
           moisture: null,
         };
       }
-      if (row.sensor_type === 'temperature') acc[date].temperature = row.avg_value;
-      if (row.sensor_type === 'humidity') acc[date].humidity = row.avg_value;
-      if (row.sensor_type === 'soil_moisture') acc[date].moisture = row.avg_value;
+      if (row.sensor_type === '온도') acc[date].temperature = row.avg_value;
+      if (row.sensor_type === '습도') acc[date].humidity = row.avg_value;
+      if (row.sensor_type === '토양 수분') acc[date].moisture = row.avg_value;
       return acc;
     }, {});
 

@@ -10,7 +10,7 @@ router.get('/user/profile', async (req, res) => {
   try {
     // 사용자 기본 정보
     const userResult = await pool.query(`
-      SELECT user_id, email, user_name, nickname, farm_location, role, provider, created_at
+      SELECT user_id, email, name, nickname, farm_location, role, provider, created_at
       FROM users
       WHERE user_id = $1
     `, [userId]);
