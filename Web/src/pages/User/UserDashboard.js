@@ -124,9 +124,31 @@ useEffect(() => {
     })
   );
 
+  // 센서 존재 여부 확인
+  const hasTemperatureSensor = data.sensors?.some(sensor => sensor.type === "온도");
+  const hasHumiditySensor = data.sensors?.some(sensor => sensor.type === "습도");
+  const hasSoilMoistureSensor = data.sensors?.some(sensor => sensor.type === "토양 수분");
+
+  // 센서 로그 데이터 존재 여부 확인
+  const hasTemperatureLogs = sensorLogs.some(log => log.temperature !== null && log.temperature !== undefined);
+  const hasHumidityLogs = sensorLogs.some(log => log.humidity !== null && log.humidity !== undefined);
+  const hasSoilMoistureLogs = sensorLogs.some(log => log.soil_moisture !== null && log.soil_moisture !== undefined);
+
+  // 센서 데이터 유효성 검사
+  const isValidSensorData = (data) => {
+    return Array.isArray(data) && 
+           data.length > 0 && 
+           data.some(value => value !== null && value !== undefined && !isNaN(value));
+  };
+
   const temperatureData = dailySensorLogs.map((item) => item.temperature);
   const humidityData = dailySensorLogs.map((item) => item.humidity);
   const soilmoistureData = dailySensorLogs.map((item) => item.soil_moisture);
+
+  // 센서 존재 여부, 로그 데이터 존재 여부, 데이터 유효성 모두 확인
+  const hasValidTemperature = hasTemperatureSensor && hasTemperatureLogs && isValidSensorData(temperatureData);
+  const hasValidHumidity = hasHumiditySensor && hasHumidityLogs && isValidSensorData(humidityData);
+  const hasValidSoilMoisture = hasSoilMoistureSensor && hasSoilMoistureLogs && isValidSensorData(soilmoistureData);
 
   const chartConfig = (label, data, color) => ({
     labels,
@@ -208,32 +230,44 @@ useEffect(() => {
       {/* 현재 센서 값 */}
       {data.sensorLogs?.length > 0 && (
         <Row className="g-4 mb-4">
-          {data.sensorLogs[0].temperature !== undefined && (
+          {hasTemperatureSensor && (
             <Col md={4}>
               <Card className="text-center shadow-sm">
                 <Card.Body>
                   <h6 className="text-primary">🌡️ 현재 온도</h6>
-                  <h2 className="text-danger">{temperature}°C</h2>
+                  {hasValidTemperature ? (
+                    <h2 className="text-danger">{temperature}°C</h2>
+                  ) : (
+                    <p className="text-muted">데이터 없음</p>
+                  )}
                 </Card.Body>
               </Card>
             </Col>
           )}
-          {data.sensorLogs[0].humidity !== undefined && (
+          {hasHumiditySensor && (
             <Col md={4}>
               <Card className="text-center shadow-sm">
                 <Card.Body>
                   <h6 className="text-primary">💧 현재 습도</h6>
-                  <h2 className="text-primary">{humidity}%</h2>
+                  {hasValidHumidity ? (
+                    <h2 className="text-primary">{humidity}%</h2>
+                  ) : (
+                    <p className="text-muted">데이터 없음</p>
+                  )}
                 </Card.Body>
               </Card>
             </Col>
           )}
-          {data.sensorLogs[0].soil_moisture !== undefined && (
+          {hasSoilMoistureSensor && (
             <Col md={4}>
               <Card className="text-center shadow-sm">
                 <Card.Body>
                   <h6 className="text-primary">🌱 토양 수분</h6>
-                  <h2 className="text-info">{soil_moisture}%</h2>
+                  {hasValidSoilMoisture ? (
+                    <h2 className="text-info">{soil_moisture}%</h2>
+                  ) : (
+                    <p className="text-muted">데이터 없음</p>
+                  )}
                 </Card.Body>
               </Card>
             </Col>
@@ -244,40 +278,68 @@ useEffect(() => {
       {/* 하루 평균 그래프 */}
       {data.dailySensorLogs?.length > 0 && (
         <Row className="mb-4">
-          {/* 그래프용 데이터는 전처리해서 props로 넘겨야 함. 예: tempChartData, humidChartData, moistChartData */}
-          <Col md={4}>
-            <Card className="shadow-sm">
-              <Card.Body>
-                <h6 className="text-success">📈 온도 변화 (최근 24시간)</h6>
-                <Line data={chartConfig("온도(°C)", temperatureData, {
-                  border: "rgba(255, 99, 132, 0.8)",
-                  background: "rgba(255, 99, 132, 0.2)",
-                })} height={150} />
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={4}>
-            <Card className="shadow-sm">
-              <Card.Body>
-                <h6 className="text-warning">💦 습도 변화 (최근 24시간)</h6>
-                <Line data={chartConfig("습도(%)", humidityData, {
-                  border: "rgba(54, 162, 235, 0.8)",
-                  background: "rgba(54, 162, 235, 0.2)",
-                })} height={150} />
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={4}>
-            <Card className="shadow-sm">
-              <Card.Body>
-                <h6 className="text-primary">🌱 토양 수분 변화 (최근 24시간)</h6>
-                <Line data={chartConfig("토양 수분(%)", soilmoistureData, {
-                  border: "rgba(75, 192, 192, 0.8)",
-                  background: "rgba(75, 192, 192, 0.2)",
-                })} height={150} />
-              </Card.Body>
-            </Card>
-          </Col>
+          {/* 온도 그래프 */}
+          {hasTemperatureSensor && (
+            <Col md={4}>
+              <Card className="shadow-sm">
+                <Card.Body>
+                  <h6 className="text-success">📈 온도 변화 (최근 24시간)</h6>
+                  {hasValidTemperature ? (
+                    <Line data={chartConfig("온도(°C)", temperatureData, {
+                      border: "rgba(255, 99, 132, 0.8)",
+                      background: "rgba(255, 99, 132, 0.2)",
+                    })} height={150} />
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-muted">데이터 없음</p>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
+          )}
+
+          {/* 습도 그래프 */}
+          {hasHumiditySensor && (
+            <Col md={4}>
+              <Card className="shadow-sm">
+                <Card.Body>
+                  <h6 className="text-warning">💦 습도 변화 (최근 24시간)</h6>
+                  {hasValidHumidity ? (
+                    <Line data={chartConfig("습도(%)", humidityData, {
+                      border: "rgba(54, 162, 235, 0.8)",
+                      background: "rgba(54, 162, 235, 0.2)",
+                    })} height={150} />
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-muted">데이터 없음</p>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
+          )}
+
+          {/* 토양 수분 그래프 */}
+          {hasSoilMoistureSensor && (
+            <Col md={4}>
+              <Card className="shadow-sm">
+                <Card.Body>
+                  <h6 className="text-primary">🌱 토양 수분 변화 (최근 24시간)</h6>
+                  {hasValidSoilMoisture ? (
+                    <Line data={chartConfig("토양 수분(%)", soilmoistureData, {
+                      border: "rgba(75, 192, 192, 0.8)",
+                      background: "rgba(75, 192, 192, 0.2)",
+                    })} height={150} />
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-muted">데이터 없음</p>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
+          )}
         </Row>
       )}
   
@@ -290,13 +352,18 @@ useEffect(() => {
                 <h5 className="text-dark fw-bold">🌡️ 센서 목록</h5>
                 {data.sensors.map((sensor) => (
                   <p key={sensor.id}>
-                    {sensor.type === "온도" && "🌡 온도 센서"}
-                    {sensor.type === "습도" && "💧 습도 센서"}
-                    {sensor.type === "토양 수분" && "🌱 토양 수분 센서"}
-                    {!["온도", "습도", "토양 수분"].includes(sensor.type) && `📟 ${sensor.name} 센서`}
-                    : <strong style={{ color: sensor.active ? 'green' : 'red' }}>
+                    {sensor.type === "온도" && "🌡️"}
+                    {sensor.type === "습도" && "💧"}
+                    {sensor.type === "토양 수분" && "🌱"}
+                    {!["온도", "습도", "토양 수분"].includes(sensor.type) && "📟"}
+                    {" "}
+                    <span style={{ fontWeight: 500 }}>{sensor.name}</span>
+                    {" "}
+                    <span style={{ color: "#666" }}>({sensor.type})</span>
+                    {" "}
+                    <strong style={{ color: sensor.active ? 'green' : 'red' }}>
                       {sensor.active ? "작동중" : "정지됨"}
-                      </strong>
+                    </strong>
                   </p>
                 ))}
               </Card.Body>
@@ -314,27 +381,16 @@ useEffect(() => {
                 <h5 className="text-dark fw-bold">⚙️ 제어 장치 상태</h5>
                 {data.actuators.map((device) => (
                   <p key={device.id}>
-                    {device.type === "LED" && (
-                      <>
-                        <FaLightbulb className="text-warning" /> 조명
-                      </>
-                    )}
-                    {device.type === "급수" && (
-                      <>
-                        <FaShower className="text-info" /> 급수 시스템
-                      </>
-                    )}
-                    {device.type === "팬" && (
-                      <>
-                        <FaFan className="text-primary" /> 팬
-                      </>
-                    )}
-                    {!["LED", "급수", "팬"].includes(device.type) && (
-                      `⚙️ ${device.name}`
-                    )}
-                    : 
-                    <strong 
-                      style={{ color: device.active ? "green" : "red" }}>
+                    {device.type === "LED" && <FaLightbulb className="text-warning" />}
+                    {device.type === "급수" && <FaShower className="text-info" />}
+                    {device.type === "팬" && <FaFan className="text-primary" />}
+                    {!["LED", "급수", "팬"].includes(device.type) && "⚙️"}
+                    {" "}
+                    <span style={{ fontWeight: 500 }}>{device.name}</span>
+                    {" "}
+                    <span style={{ color: "#666" }}>({device.type})</span>
+                    {" "}
+                    <strong style={{ color: device.active ? "green" : "red" }}>
                       {device.active ? "작동중" : "정지됨"}
                     </strong>
                   </p>

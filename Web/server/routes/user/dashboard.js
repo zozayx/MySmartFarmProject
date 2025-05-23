@@ -101,31 +101,38 @@ router.get('/user/dashboard/:farmId', async (req, res) => {
 
     // 최신 센서 데이터 (최근 1개)
     const recentSensorData = await pool.query(`
-      SELECT time, 
-         MAX(CASE WHEN sensor_logs.sensor_type = '온도' THEN sensor_value END) AS temperature,
-         MAX(CASE WHEN sensor_logs.sensor_type = '습도' THEN sensor_value END) AS humidity,
-         MAX(CASE WHEN sensor_logs.sensor_type = '토양 수분' THEN sensor_value END) AS soil_moisture
-      FROM sensor_logs
-      JOIN sensors ON sensor_logs.sensor_id = sensors.sensor_id
-      JOIN esps ON sensors.esp_id = esps.esp_id 
-      WHERE esps.farm_id = $1 
-      GROUP BY time
-      ORDER BY time DESC
-      LIMIT 1
+      WITH latest_time AS (
+        SELECT MAX(time) as max_time
+        FROM sensor_logs
+        JOIN sensors ON sensor_logs.sensor_id = sensors.sensor_id
+        JOIN esps ON sensors.esp_id = esps.esp_id 
+        WHERE esps.farm_id = $1
+      )
+      SELECT 
+        sl.time,
+        MAX(CASE WHEN s.sensor_type = '온도' THEN sl.sensor_value END) as temperature,
+        MAX(CASE WHEN s.sensor_type = '습도' THEN sl.sensor_value END) as humidity,
+        MAX(CASE WHEN s.sensor_type = '토양 수분' THEN sl.sensor_value END) as soil_moisture
+      FROM sensor_logs sl
+      JOIN sensors s ON sl.sensor_id = s.sensor_id
+      JOIN esps e ON s.esp_id = e.esp_id
+      WHERE e.farm_id = $1 
+        AND sl.time = (SELECT max_time FROM latest_time)
+      GROUP BY sl.time
     `, [farmId]);
 
     // ✅ 1시간 단위 평균값 집계 (최근 24시간)
     const hourlyAverages = await pool.query(`
-      SELECT
-        time_bucket('1 hour', sensor_logs.time) AS hour,
-        AVG(CASE WHEN sensor_logs.sensor_type = '온도' THEN sensor_logs.sensor_value END) AS avg_temperature,
-        AVG(CASE WHEN sensor_logs.sensor_type = '습도' THEN sensor_logs.sensor_value END) AS avg_humidity,
-        AVG(CASE WHEN sensor_logs.sensor_type = '토양 수분' THEN sensor_logs.sensor_value END) AS avg_soil_moisture
-      FROM sensor_logs
-      JOIN sensors ON sensor_logs.sensor_id = sensors.sensor_id
-      JOIN esps ON sensors.esp_id = esps.esp_id
-      WHERE esps.farm_id = $1
-        AND sensor_logs.time > NOW() - INTERVAL '24 hours'
+      SELECT 
+        time_bucket('1 hour', sl.time) as hour,
+        AVG(CASE WHEN s.sensor_type = '온도' THEN sl.sensor_value END) as avg_temperature,
+        AVG(CASE WHEN s.sensor_type = '습도' THEN sl.sensor_value END) as avg_humidity,
+        AVG(CASE WHEN s.sensor_type = '토양 수분' THEN sl.sensor_value END) as avg_soil_moisture
+      FROM sensor_logs sl
+      JOIN sensors s ON sl.sensor_id = s.sensor_id
+      JOIN esps e ON s.esp_id = e.esp_id
+      WHERE e.farm_id = $1
+        AND sl.time > NOW() - INTERVAL '24 hours'
       GROUP BY hour
       ORDER BY hour
     `, [farmId]);

@@ -242,7 +242,7 @@ function UserControlPanel() {
       <Alert variant="info" className="text-center">
         ✅ 현재 자동 기준값: 온도 <strong>{savedSettings.temperature}℃</strong> / 습도{" "}
         <strong>{savedSettings.humidity}%</strong> / 토양 습도{" "}
-        <strong>{savedSettings.soilMoisture}%</strong> / 작물 품종{" "}
+        <strong>{savedSettings.soilMoisture}%</strong> / 농장 이름{" "}
         <strong>{savedSettings.farmName}</strong>
       </Alert>
     )}
@@ -258,7 +258,7 @@ function UserControlPanel() {
         <Row className="mb-4">
           <Col md={6}>
             <Form.Group>
-              <Form.Label>📌 작물 품종 선택</Form.Label>
+              <Form.Label>📌 농장 선택</Form.Label>
               <Form.Select value={farmName} onChange={handleFarmChange}>
                 {Array.isArray(farmNames) && farmNames.length > 0 ? (
                   farmNames.map((type) => (

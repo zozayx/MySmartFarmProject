@@ -59,7 +59,7 @@ router.post('/user/devices/purchase', async (req, res) => {
         // 시리얼 번호는 하드웨어에서 추후 입력될 예정이므로 null로 저장
         await client.query(
           `INSERT INTO user_devices
-            (user_id, device_type, device_subtype, name,status, gpio_pin, unit, purchased_at)
+            (user_id, device_type, device_subtype, name, status, gpio_pin, unit, purchased_at)
            VALUES ($1, $2, $3, $4, 'unassigned', $5, $6, now())`,
           [
             userId,

@@ -89,7 +89,17 @@ function UserDataVisualization() {
   const labels = sensorData.map((entry) => entry.date);
   const temperatures = sensorData.map((entry) => entry.temperature);
   const humidities = sensorData.map((entry) => entry.humidity);
-  const moistures = sensorData.map((entry) => entry.moisture);
+  const soil_moistures = sensorData.map((entry) => entry.soil_moisture);
+
+  // 데이터 유효성 검사 함수
+  const hasValidData = (data) => {
+    return data && data.length > 0 && data.some(value => value !== null && value !== undefined && !isNaN(value));
+  };
+
+  // 센서 존재 여부 확인
+  const hasTemperatureSensor = temperatures.some(value => value !== null);
+  const hasHumiditySensor = humidities.some(value => value !== null);
+  const hasSoilMoistureSensor = soil_moistures.some(value => value !== null);
 
   const temperatureChart = {
     labels,
@@ -122,7 +132,7 @@ function UserDataVisualization() {
     datasets: [
       {
         label: "토양 수분(%)",
-        data: moistures,
+        data: soil_moistures,
         borderColor: "rgba(75, 192, 192, 0.8)",
         backgroundColor: "rgba(75, 192, 192, 0.2)",
         tension: 0.3,
@@ -163,36 +173,59 @@ function UserDataVisualization() {
               </Col>
             </Row>
 
-            {/* 선택된 농장의 데이터가 없을 경우 알림 */}
-            {sensorData.length === 0 && (
-              <Alert variant="warning" className="text-center">
-                선택한 농장의 데이터가 없습니다.
-              </Alert>
-            )}
-
             {/* 차트 영역 */}
             <Row className="mb-4">
               <Col md={12}>
-                <Card className="shadow-sm mb-4">
-                  <Card.Body>
-                    <h5 className="text-danger mb-3">🌡️ 온도 변화</h5>
-                    <Line data={temperatureChart} height={chartHeight} options={{ responsive: true }} />
-                  </Card.Body>
-                </Card>
+                {hasTemperatureSensor && (
+                  <Card className="shadow-sm mb-4">
+                    <Card.Body>
+                      <h5 className="text-danger mb-3">🌡️ 온도 변화</h5>
+                      {hasValidData(temperatures) ? (
+                        <Line data={temperatureChart} height={chartHeight} options={{ responsive: true }} />
+                      ) : (
+                        <Alert variant="info" className="text-center mb-0">
+                          데이터가 없습니다.
+                        </Alert>
+                      )}
+                    </Card.Body>
+                  </Card>
+                )}
 
-                <Card className="shadow-sm mb-4">
-                  <Card.Body>
-                    <h5 className="text-info mb-3">💧 습도 변화</h5>
-                    <Line data={humidityChart} height={chartHeight} options={{ responsive: true }} />
-                  </Card.Body>
-                </Card>
+                {hasHumiditySensor && (
+                  <Card className="shadow-sm mb-4">
+                    <Card.Body>
+                      <h5 className="text-info mb-3">💧 습도 변화</h5>
+                      {hasValidData(humidities) ? (
+                        <Line data={humidityChart} height={chartHeight} options={{ responsive: true }} />
+                      ) : (
+                        <Alert variant="info" className="text-center mb-0">
+                          데이터가 없습니다.
+                        </Alert>
+                      )}
+                    </Card.Body>
+                  </Card>
+                )}
 
-                <Card className="shadow-sm mb-4">
-                  <Card.Body>
-                    <h5 className="text-teal mb-3">🌱 토양 수분 변화</h5>
-                    <Line data={moistureChart} height={chartHeight} options={{ responsive: true }} />
-                  </Card.Body>
-                </Card>
+                {hasSoilMoistureSensor && (
+                  <Card className="shadow-sm mb-4">
+                    <Card.Body>
+                      <h5 className="text-teal mb-3">🌱 토양 수분 변화</h5>
+                      {hasValidData(soil_moistures) ? (
+                        <Line data={moistureChart} height={chartHeight} options={{ responsive: true }} />
+                      ) : (
+                        <Alert variant="info" className="text-center mb-0">
+                          데이터가 없습니다.
+                        </Alert>
+                      )}
+                    </Card.Body>
+                  </Card>
+                )}
+
+                {!hasTemperatureSensor && !hasHumiditySensor && !hasSoilMoistureSensor && (
+                  <Alert variant="warning" className="text-center">
+                    설치된 센서가 없습니다.
+                  </Alert>
+                )}
               </Col>
             </Row>
           </Tab>

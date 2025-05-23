@@ -147,7 +147,7 @@ const UserStore = () => {
   });
 
   return (
-    <Container className="mt-4">
+    <Container className="mt-4 mb-5">
       <h1 className="mb-4">스마트팜 상점</h1>
       <Row>
         {/* 왼쪽 사이드바 */}

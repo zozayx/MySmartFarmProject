@@ -216,11 +216,21 @@ const UserFarmManagement = () => {
       credentials: 'include',
     })
       .then(res => res.json())
-      .then(() => {
-        setAllDevices(devs => devs.filter(d => d.device_id !== device_id));
+      .then(data => {
+        if (data.error) {
+          // 에러 메시지가 있는 경우 (할당된 장치 등)
+          alert(data.error);
+        } else if (data.success) {
+          // 삭제 성공한 경우에만 목록에서 제거
+          setAllDevices(devs => devs.filter(d => d.device_id !== device_id));
+          alert('장치가 성공적으로 삭제되었습니다.');
+        }
         setDeletingDeviceId(null);
       })
-      .catch(() => setDeletingDeviceId(null));
+      .catch(error => {
+        alert('서버 오류가 발생했습니다.');
+        setDeletingDeviceId(null);
+      });
   };
 
   return (
@@ -228,7 +238,7 @@ const UserFarmManagement = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-center text-dark mb-0" style={{ color: "#3c8d40" }}>🌱 내 농장 관리</h2>
         <Button variant="outline-primary" size="sm" onClick={handleShowDeviceModal}>
-          장치 관리
+          내 장치 관리
         </Button>
       </div>
       {farms.length > 0 ? (
@@ -249,61 +259,132 @@ const UserFarmManagement = () => {
               </div>
                 <p className="text-muted">{farm.location} | {farm.farm_size} m²</p>
                 <Row className="g-4">
-                  {farm.esps.length > 0 ? (
-                    farm.esps.map(esp => (
-                      <Col key={esp.esp_id} sm={12} md={6} lg={4}>
-                        <Card className="mb-4 shadow-sm" style={{
-                          borderRadius: "16px",
-                          background: "#f8fafc",
-                          border: "1px solid #e0e0e0",
-                          minHeight: 220,
-                          position: "relative"
-                        }}>
-                          <Card.Body>
-                            <div className="d-flex align-items-center mb-2">
-                              <div style={{
-                                fontSize: 32,
-                                color: esp.is_connected ? "#28a745" : "#dc3545",
-                                marginRight: 12
-                              }}>
-                                <FaWifi />
-                              </div>
-                              <div>
-                                <div style={{ fontWeight: 600, fontSize: 20 }}>
-                                  {esp.device?.name || esp.esp_name}
+                  {/* 센서 ESP 섹션 */}
+                  {farm.sensors && farm.sensors.length > 0 && (
+                    <Col sm={12}>
+                      <h5 className="mb-3" style={{ color: "#3c8d40" }}>🌡️ 센서 장치</h5>
+                      <Row className="g-4">
+                        {farm.sensors.map(esp => (
+                          <Col key={esp.esp_id} sm={12} md={6} lg={4}>
+                            <Card className="mb-4 shadow-sm" style={{
+                              borderRadius: "16px",
+                              background: "#f8fafc",
+                              border: "1px solid #e0e0e0",
+                              minHeight: 220,
+                              position: "relative"
+                            }}>
+                              <Card.Body>
+                                <div className="d-flex align-items-center mb-2">
+                                  <div style={{
+                                    fontSize: 32,
+                                    color: esp.is_connected ? "#28a745" : "#dc3545",
+                                    marginRight: 12
+                                  }}>
+                                    <FaWifi />
+                                  </div>
+                                  <div>
+                                    <div style={{ fontWeight: 600, fontSize: 20 }}>
+                                      {esp.device?.name || esp.esp_name}
+                                    </div>
+                                    <span className="badge bg-light text-dark border" style={{ fontSize: 13 }}>
+                                      센서
+                                    </span>
+                                    {esp.is_connected ? (
+                                      <span className="badge bg-success ms-2">연결됨</span>
+                                    ) : (
+                                      <span className="badge bg-danger ms-2">연결 안 됨</span>
+                                    )}
+                                  </div>
                                 </div>
-                                <span className="badge bg-light text-dark border" style={{ fontSize: 13 }}>
-                                  {esp.device?.type === "sensor" ? "센서" : "제어장치"}
-                                </span>
-                                {esp.is_connected ? (
-                                  <span className="badge bg-success ms-2">연결됨</span>
-                                ) : (
-                                  <span className="badge bg-danger ms-2">연결 안 됨</span>
-                                )}
-                              </div>
-                            </div>
-                            <hr style={{ margin: "10px 0" }} />
-                            <div style={{ fontSize: 15, color: "#444" }}>
-                              <div><b>타입명:</b> {esp.device?.device_type}</div>
-                              <div><b>GPIO 핀:</b> {esp.device?.gpio_pin}</div>
-                              <div><b>IP:</b> {esp.ip_address}</div>
-                            </div>
-                            <div className="d-flex justify-content-end mt-3">
-                              <Button
-                                variant="outline-success"
-                                size="sm"
-                                onClick={() => fetchEspDetails(farm.farm_id, esp.esp_id)}
-                                style={{ borderRadius: 8, marginRight: 8 }}
-                              >
-                                세부 정보
-                              </Button>
-                              <DeleteButton farmId={farm.farm_id} espId={esp.esp_id} type="esp" onDelete={refreshFarms} />
-                            </div>
-                          </Card.Body>
-                        </Card>
-                      </Col>
-                    ))
-                  ) : (
+                                <hr style={{ margin: "10px 0" }} />
+                                <div style={{ fontSize: 15, color: "#444" }}>
+                                  <div><b>타입명:</b> {esp.device?.device_type}</div>
+                                  <div><b>GPIO 핀:</b> {esp.device?.gpio_pin}</div>
+                                  <div><b>IP:</b> {esp.ip_address}</div>
+                                </div>
+                                <div className="d-flex justify-content-end mt-3">
+                                  <Button
+                                    variant="outline-success"
+                                    size="sm"
+                                    onClick={() => fetchEspDetails(farm.farm_id, esp.esp_id)}
+                                    style={{ borderRadius: 8, marginRight: 8 }}
+                                  >
+                                    세부 정보
+                                  </Button>
+                                  <DeleteButton farmId={farm.farm_id} espId={esp.esp_id} type="esp" onDelete={refreshFarms} />
+                                </div>
+                              </Card.Body>
+                            </Card>
+                          </Col>
+                        ))}
+                      </Row>
+                    </Col>
+                  )}
+
+                  {/* 액추에이터 ESP 섹션 */}
+                  {farm.actuators && farm.actuators.length > 0 && (
+                    <Col sm={12}>
+                      <h5 className="mb-3" style={{ color: "#3c8d40" }}>⚙️ 제어 장치</h5>
+                      <Row className="g-4">
+                        {farm.actuators.map(esp => (
+                          <Col key={esp.esp_id} sm={12} md={6} lg={4}>
+                            <Card className="mb-4 shadow-sm" style={{
+                              borderRadius: "16px",
+                              background: "#f8fafc",
+                              border: "1px solid #e0e0e0",
+                              minHeight: 220,
+                              position: "relative"
+                            }}>
+                              <Card.Body>
+                                <div className="d-flex align-items-center mb-2">
+                                  <div style={{
+                                    fontSize: 32,
+                                    color: esp.is_connected ? "#28a745" : "#dc3545",
+                                    marginRight: 12
+                                  }}>
+                                    <FaWifi />
+                                  </div>
+                                  <div>
+                                    <div style={{ fontWeight: 600, fontSize: 20 }}>
+                                      {esp.device?.name || esp.esp_name}
+                                    </div>
+                                    <span className="badge bg-light text-dark border" style={{ fontSize: 13 }}>
+                                      제어장치
+                                    </span>
+                                    {esp.is_connected ? (
+                                      <span className="badge bg-success ms-2">연결됨</span>
+                                    ) : (
+                                      <span className="badge bg-danger ms-2">연결 안 됨</span>
+                                    )}
+                                  </div>
+                                </div>
+                                <hr style={{ margin: "10px 0" }} />
+                                <div style={{ fontSize: 15, color: "#444" }}>
+                                  <div><b>타입명:</b> {esp.device?.device_type}</div>
+                                  <div><b>GPIO 핀:</b> {esp.device?.gpio_pin}</div>
+                                  <div><b>IP:</b> {esp.ip_address}</div>
+                                </div>
+                                <div className="d-flex justify-content-end mt-3">
+                                  <Button
+                                    variant="outline-success"
+                                    size="sm"
+                                    onClick={() => fetchEspDetails(farm.farm_id, esp.esp_id)}
+                                    style={{ borderRadius: 8, marginRight: 8 }}
+                                  >
+                                    세부 정보
+                                  </Button>
+                                  <DeleteButton farmId={farm.farm_id} espId={esp.esp_id} type="esp" onDelete={refreshFarms} />
+                                </div>
+                              </Card.Body>
+                            </Card>
+                          </Col>
+                        ))}
+                      </Row>
+                    </Col>
+                  )}
+
+                  {/* 장치가 없는 경우 */}
+                  {(!farm.sensors || farm.sensors.length === 0) && (!farm.actuators || farm.actuators.length === 0) && (
                     <Col sm={12}><p>장치(ESP) 정보가 없습니다.</p></Col>
                   )}
                 </Row>

@@ -11,31 +11,6 @@ const Cart = () => {
     updateQuantity(productId, parseInt(newQuantity));
   };
 
-  const handleCheckout = async () => {
-    try {
-      const items = cartItems.map(item => ({
-        store_id: item.store_id,
-        quantity: item.quantity
-      }));
-
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/user/devices/purchase`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(items)
-      });
-      const data = await response.json();
-      if (data.success) {
-        clearCart();
-        alert('구매가 완료되었습니다! 내 미할당 장치에서 확인하세요.');
-      } else {
-        alert(data.error || '구매 처리 중 오류가 발생했습니다.');
-      }
-    } catch (e) {
-      alert('서버 오류가 발생했습니다.');
-    }
-  };
-
   if (cartItems.length === 0) {
     return (
       <Container className="mt-4">
@@ -116,9 +91,9 @@ const Cart = () => {
               <Button
                 variant="success"
                 className="w-100 mb-2"
-                onClick={handleCheckout}
+                onClick={() => navigate('/user/shipping', { state: { cartItems } })}
               >
-                결제하기
+                주문하기
               </Button>
               <Button
                 variant="outline-danger"

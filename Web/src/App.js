@@ -24,6 +24,7 @@ import UserCreateFarm from "./pages/User/UserCreateFarm";
 import UserFarmManagement from "./pages/User/UserFarmManagement";
 import UserStore from "./pages/User/UserStore";
 import UserCart from './pages/User/UserCart';
+import UserShipping from './pages/User/UserShipping';
 import Settings from "./pages/User/UserSettings";
 import Profile from "./pages/User/UserProfile";
 import Help from "./pages/User/UserHelp";
@@ -85,6 +86,7 @@ function App() {
                 <Route path="/user/farm-management" element={<UserFarmManagement />} />
                 <Route path="/user/store" element={<UserStore />} />
                 <Route path="/user/cart" element={<UserCart />} />
+                <Route path="/user/shipping" element={<UserShipping />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/help" element={<Help />} />
