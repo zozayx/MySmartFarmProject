@@ -14,7 +14,8 @@ const UserShipping = () => {
     addressDetail: '',
     zipCode: '',
     message: '',
-    messageType: 'default'
+    messageType: 'default',
+    paymentMethod: 'card'
   });
   const [errors, setErrors] = useState({});
 
@@ -280,12 +281,92 @@ const UserShipping = () => {
                 <span>총 결제 금액:</span>
                 <span className="h5 mb-0">{getTotalPrice().toLocaleString()}원</span>
               </div>
+
+              <div className="mb-4">
+                <h6 className="mb-3">결제 방법</h6>
+                <div className="d-flex flex-column gap-2">
+                  <Form.Check
+                    type="radio"
+                    id="card"
+                    name="paymentMethod"
+                    label={
+                      <div className="d-flex align-items-center" style={{ marginLeft: '4px' }}>
+                        <i className="bi bi-credit-card me-2" style={{ fontSize: '1.1rem' }}></i>
+                        <span style={{ marginTop: '1px' }}>신용/체크카드</span>
+                      </div>
+                    }
+                    checked={shippingInfo.paymentMethod === 'card'}
+                    onChange={() => setShippingInfo(prev => ({ ...prev, paymentMethod: 'card' }))}
+                    className="payment-option"
+                    style={{ padding: '8px 0' }}
+                  />
+                  <Form.Check
+                    type="radio"
+                    id="bank"
+                    name="paymentMethod"
+                    label={
+                      <div className="d-flex align-items-center" style={{ marginLeft: '4px' }}>
+                        <i className="bi bi-bank me-2" style={{ fontSize: '1.1rem' }}></i>
+                        <span style={{ marginTop: '1px' }}>계좌이체</span>
+                      </div>
+                    }
+                    checked={shippingInfo.paymentMethod === 'bank'}
+                    onChange={() => setShippingInfo(prev => ({ ...prev, paymentMethod: 'bank' }))}
+                    className="payment-option"
+                    style={{ padding: '8px 0' }}
+                  />
+                  <Form.Check
+                    type="radio"
+                    id="virtual"
+                    name="paymentMethod"
+                    label={
+                      <div className="d-flex align-items-center" style={{ marginLeft: '4px' }}>
+                        <i className="bi bi-wallet2 me-2" style={{ fontSize: '1.1rem' }}></i>
+                        <span style={{ marginTop: '1px' }}>가상계좌</span>
+                      </div>
+                    }
+                    checked={shippingInfo.paymentMethod === 'virtual'}
+                    onChange={() => setShippingInfo(prev => ({ ...prev, paymentMethod: 'virtual' }))}
+                    className="payment-option"
+                    style={{ padding: '8px 0' }}
+                  />
+                </div>
+              </div>
+
+              {shippingInfo.paymentMethod === 'card' && (
+                <div className="alert alert-info mb-3">
+                  <small>
+                    <i className="bi bi-info-circle me-1"></i>
+                    결제 시 보안을 위해 안전한 결제창이 열립니다.
+                  </small>
+                </div>
+              )}
+
+              {shippingInfo.paymentMethod === 'bank' && (
+                <div className="alert alert-info mb-3">
+                  <small>
+                    <i className="bi bi-info-circle me-1"></i>
+                    결제 완료 후 입금 확인까지 최대 10분이 소요될 수 있습니다.
+                  </small>
+                </div>
+              )}
+
+              {shippingInfo.paymentMethod === 'virtual' && (
+                <div className="alert alert-info mb-3">
+                  <small>
+                    <i className="bi bi-info-circle me-1"></i>
+                    발급된 가상계좌로 입금해주세요. 입금 확인 후 주문이 완료됩니다.
+                  </small>
+                </div>
+              )}
+
               <Button
                 variant="success"
-                className="w-100"
+                className="w-100 py-2"
                 onClick={handleCheckout}
+                style={{ fontSize: '1.1rem' }}
               >
-                결제하기
+                {getTotalPrice().toLocaleString()}원 결제하기
               </Button>
             </Card.Body>
           </Card>
