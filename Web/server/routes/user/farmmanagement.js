@@ -98,8 +98,8 @@ router.get('/user/farm/:farm_id/esp/:esp_id', async (req, res) => {
         // ESP의 기본 정보를 가져오는 쿼리
         const espDetailsQuery = `
             SELECT e.esp_id, e.farm_id, e.device_type, e.ip_address, e.is_connected,
-                   s.sensor_id, s.sensor_type, s.sensor_name, s.device_name AS sensor_device_name, s.gpio_pin AS sensor_gpio_pin,
-                   a.actuator_id, a.actuator_type, a.actuator_name, a.device_name AS actuator_device_name, a.gpio_pin AS actuator_gpio_pin
+                   s.sensor_id, s.sensor_type, s.sensor_name, s.is_active AS sensor_is_active, s.device_name AS sensor_device_name, s.gpio_pin AS sensor_gpio_pin,
+                   a.actuator_id, a.actuator_type, a.actuator_name, a.is_active AS actuator_is_active, a.device_name AS actuator_device_name, a.gpio_pin AS actuator_gpio_pin
             FROM esps e
             LEFT JOIN sensors s ON s.esp_id = e.esp_id
             LEFT JOIN actuators a ON a.esp_id = e.esp_id
@@ -121,6 +121,7 @@ router.get('/user/farm/:farm_id/esp/:esp_id', async (req, res) => {
             type: 'sensor',
             id: row.sensor_id,
             name: row.sensor_name,
+            is_active: row.sensor_is_active,
             device_name: row.sensor_device_name,
             device_type: row.sensor_type,
             gpio_pin: row.sensor_gpio_pin
@@ -130,6 +131,7 @@ router.get('/user/farm/:farm_id/esp/:esp_id', async (req, res) => {
             type: 'actuator',
             id: row.actuator_id,
             name: row.actuator_name,
+            is_active: row.actuator_is_active,
             device_name: row.actuator_device_name,
             device_type: row.actuator_type,
             gpio_pin: row.actuator_gpio_pin

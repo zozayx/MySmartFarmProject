@@ -11,11 +11,11 @@ const categories = [
 ];
 
 const sensorSubtypes = [
-  '온도', '습도', '조도', '토양수분', '토양온도', '이산화탄소', 'ph', 'ec', '풍속', '풍향', '강우', '수위', '미세먼지', '공기질',
+  '온도', '습도', '토양수분', '조도', '토양온도', '이산화탄소', 'ph', 'ec', '풍속', '풍향', '강우', '수위', '미세먼지', '공기질',
 ];
 
 const actuatorSubtypes = [
-  '모터', '펌프', '밸브', '급수장치', '조명', '환풍기', '히터', '냉방기', '커튼', '영양분공급기', 'co2발생기', '스프링클러', '자동문',
+  '릴레이', '모터', '펌프','밸브', '급수장치', '조명', '환풍기', '히터', '냉방기', '커튼', '영양분공급기', 'co2발생기', '스프링클러', '자동문',
 ];
 
 const typeToKorean = (type) => {
@@ -28,8 +28,8 @@ const subtypeToKorean = (subtype) => {
   const map = {
     '온도': '온도 센서',
     '습도': '습도 센서',
-    '조도': '조도 센서',
     '토양수분': '토양 수분 센서',
+    '조도': '조도 센서',
     '토양온도': '토양 온도 센서',
     '이산화탄소': 'CO₂ 센서',
     'ph': 'pH 센서',
@@ -100,6 +100,23 @@ const UserStore = () => {
       p.subtype.toLowerCase().includes(lower)
     );
   }
+
+  // 카테고리와 서브타입으로 정렬
+  filteredProducts.sort((a, b) => {
+    // 먼저 카테고리로 정렬
+    if (a.type !== b.type) {
+      const typeOrder = { 'sensor': 0, 'actuator': 1 };
+      return typeOrder[a.type] - typeOrder[b.type];
+    }
+    
+    // 같은 카테고리 내에서는 서브타입으로 정렬
+    const subtypeOrder = {
+      'sensor': sensorSubtypes,
+      'actuator': actuatorSubtypes
+    };
+    const order = subtypeOrder[a.type];
+    return order.indexOf(a.subtype) - order.indexOf(b.subtype);
+  });
 
   const handleCategoryClick = (cat) => {
     setSelectedCategory(cat);
@@ -235,13 +252,18 @@ const UserStore = () => {
               ) : (
                 filteredProducts.map(product => (
                   <Col key={product.store_id} md={4} className="mb-4">
-                    <Card onClick={() => handleCardClick(product)} style={{ cursor: 'pointer' }}>
+                    <Card onClick={() => handleCardClick(product)} style={{ cursor: 'pointer', height: '100%' }}>
                         {product.image_url && (
                             <Card.Img
                             variant="top"
                             src={`${BASE_URL}${product.image_url}`}
                             alt={product.name}
-                            style={{ height: 180, objectFit: 'cover' }}
+                            style={{ 
+                                height: 200, 
+                                width: '100%', 
+                                objectFit: 'cover',
+                                objectPosition: 'center'
+                            }}
                             />
                         )}
                         <Card.Body>
@@ -290,7 +312,14 @@ const UserStore = () => {
                 <img
                   src={`${BASE_URL}${selectedProduct.image_url}`}
                   alt={selectedProduct.name}
-                  style={{ width: '100%', marginBottom: '1rem', borderRadius: 8 }}
+                  style={{ 
+                    width: '100%', 
+                    height: 300,
+                    objectFit: 'cover',
+                    objectPosition: 'center',
+                    marginBottom: '1rem', 
+                    borderRadius: 8 
+                  }}
                 />
               )}
               <p style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.5rem' }}>

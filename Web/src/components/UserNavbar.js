@@ -70,7 +70,7 @@ function UserNavbar({ setUserRole }) {
     >
       <Container>
         <Navbar.Brand as={Link} to="/" className="fw-bold text-white">
-          🌱 Smart Farm
+          🌱 ACG Farm
         </Navbar.Brand>
 
         <Navbar.Toggle

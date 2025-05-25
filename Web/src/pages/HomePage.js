@@ -34,7 +34,7 @@ function HomePage({ setUserRole }) {
   return (
     <Container className={`text-center py-5 ${animated ? "animate__animated animate__fadeIn" : ""}`}>
       <h1 className="fw-bold text-success mb-4 animate__animated animate__fadeInDown">
-        🌾 ACG 스마트팜에 오신 것을 환영합니다!
+        🌾 ACG Farm에 오신 것을 환영합니다!
       </h1>
       <p className="lead mb-5 animate__animated animate__fadeInUp animate__delay-1s">
         언제 어디서나 농작물을 스마트하게 관리하세요.

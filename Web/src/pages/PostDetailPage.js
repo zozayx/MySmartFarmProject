@@ -26,7 +26,9 @@ function PostDetailPage() {
   
     const fetchPostDetail = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/board/posts/${id}`);
+        const res = await fetch(`${BASE_URL}/board/posts/${id}`, {
+          credentials: "include",
+        });
         const data = await res.json();
         setPost(data.post);
         setComments(data.comments || []);

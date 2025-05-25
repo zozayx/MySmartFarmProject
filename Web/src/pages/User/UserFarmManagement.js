@@ -509,6 +509,16 @@ const UserFarmManagement = () => {
             <div className="mb-2"><b>타입명:</b> {espDetails.device?.device_type}</div>
             <div className="mb-2"><b>GPIO 핀:</b> {espDetails.device?.gpio_pin}</div>
             <div className="mb-2"><b>IP 주소:</b> {espDetails.ip_address}</div>
+            <div className="mb-2">
+              <b>상태:</b> 
+              <span style={{ 
+                color: espDetails.device && espDetails.device.is_active ? '#28a745' : '#dc3545',
+                marginLeft: '8px',
+                fontWeight: 'bold'
+              }}>
+                {espDetails.device && espDetails.device.is_active ? '작동중' : '작동중이 아님'}
+              </span>
+            </div>
             </div>
           </Modal.Body>
           <Modal.Footer style={{ background: "#f1f8f4", borderTop: "1px solid #e0e0e0" }}>
