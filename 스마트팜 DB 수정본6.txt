@@ -45,7 +45,9 @@ CREATE TABLE farms (
 -- 📟 ESP 장치 테이블 (게이트웨이 개념)
 CREATE TABLE esps (
     esp_id SERIAL PRIMARY KEY,
+    esp_name TEXT NOT NULL,
     farm_id INTEGER REFERENCES farms(farm_id) ON DELETE CASCADE,
+    device_type TEXT,
     ip_address TEXT,
     is_connected BOOLEAN DEFAULT FALSE,
     last_seen TIMESTAMPTZ, 
@@ -84,7 +86,7 @@ CREATE TABLE user_devices (
     name VARCHAR(255) NOT NULL,
     device_type TEXT NOT NULL,
     device_subtype TEXT NOT NULL,
-    gpio_pin INTEGER CHECK (gpio_pin IN (4, 5, 13, 14, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27,     32,33)),
+    gpio_pin INTEGER ,
     unit TEXT,
     status TEXT DEFAULT 'unassigned',
     assigned_farm_id INTEGER REFERENCES farms(farm_id),
