@@ -267,7 +267,7 @@ function UserControlPanel() {
                     </option>
                   ))
                 ) : (
-                  <option disabled>등록된 품종이 없습니다.</option>
+                  <option disabled>등록된 농장이 없습니다.</option>
                 )}
               </Form.Select>
             </Form.Group>

@@ -5,8 +5,8 @@ const moment = require('moment');
 
 // ✅ User의 환경 그래프
 router.get('/user/sensor-data', async (req, res) => {
-  const userId = req.user.userId; // authenticateToken 미들웨어에서 userId 추출
-  const { timeFrame , farmId} = req.query;
+  const userId = req.user.userId;
+  const { timeFrame, farmId } = req.query;
 
   if (!timeFrame || !['7days', '30days'].includes(timeFrame)) {
     return res.status(400).json({ error: 'Invalid timeFrame parameter' });
@@ -16,7 +16,7 @@ router.get('/user/sensor-data', async (req, res) => {
     return res.status(400).json({ error: 'Farm ID is required' });
   }
 
-  const currentDate = moment();  // 현재 날짜와 시간
+  const currentDate = moment();
   let startDate;
 
   if (timeFrame === '7days') {
@@ -25,7 +25,23 @@ router.get('/user/sensor-data', async (req, res) => {
     startDate = currentDate.clone().subtract(30, 'days').format('YYYY-MM-DD');
   }
 
+
   try {
+    // 먼저 해당 농장의 모든 센서 타입을 조회
+    const sensorTypesQuery = `
+      SELECT DISTINCT s.sensor_type
+      FROM sensors s
+      JOIN esps e ON s.esp_id = e.esp_id
+      WHERE e.farm_id = $1
+    `;
+    const sensorTypesResult = await pool.query(sensorTypesQuery, [farmId]);
+    const sensorTypes = sensorTypesResult.rows.map(row => row.sensor_type);
+
+    if (sensorTypes.length === 0) {
+      return res.json([]);
+    }
+
+    // 센서 데이터 조회
     const query = `
       SELECT DATE(sensor_logs.time) as date, sensor_logs.sensor_type, AVG(sensor_logs.sensor_value) as avg_value
       FROM sensor_logs
@@ -38,24 +54,29 @@ router.get('/user/sensor-data', async (req, res) => {
       ORDER BY DATE(time);
     `;
     const result = await pool.query(query, [farmId, startDate, currentDate.format('YYYY-MM-DD')]);
+    
 
+    if (result.rows.length === 0) {
+      return res.json([]);
+    }
+
+    // 동적으로 데이터 객체 생성
     const sensorData = result.rows.reduce((acc, row) => {
       const date = moment(row.date).format('YYYY-MM-DD');
       if (!acc[date]) {
+        // 모든 센서 타입에 대해 null로 초기화
         acc[date] = {
           date,
-          temperature: null,
-          humidity: null,
-          soil_moisture: null,
+          ...Object.fromEntries(sensorTypes.map(type => [type, null]))
         };
       }
-      if (row.sensor_type === '온도') acc[date].temperature = row.avg_value;
-      if (row.sensor_type === '습도') acc[date].humidity = row.avg_value;
-      if (row.sensor_type === '토양 수분') acc[date].soil_moisture = row.avg_value;
+      // 센서 타입에 해당하는 값을 설정
+      acc[date][row.sensor_type] = Number(row.avg_value);
       return acc;
     }, {});
 
     const data = Object.values(sensorData);
+
     res.json(data);
   } catch (error) {
     console.error("Error fetching sensor data: ", error);

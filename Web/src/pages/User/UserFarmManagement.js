@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Container, Modal, Button } from "react-bootstrap";
+import { Card, Row, Col, Container, Modal, Button, Spinner } from "react-bootstrap";
 import { FaTrash, FaWifi, FaLeaf } from "react-icons/fa";
 import { usePopup } from "../../context/PopupContext";
 
@@ -89,6 +89,7 @@ const UserFarmManagement = () => {
   const [showAssignDeviceModal, setShowAssignDeviceModal] = useState(false);
   const [gpioPin, setGpioPin] = useState('');
   const [usedGpioPins, setUsedGpioPins] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // IP랑 Serial 번호 형식
   const isValidIp = (ip) => /^(\d{1,3}\.){3}\d{1,3}$/.test(ip);
@@ -112,7 +113,10 @@ const UserFarmManagement = () => {
       .then(data => {
         setFarms(data);
       })
-      .catch(error => console.error("Error fetching farm data:", error));
+      .catch(error => console.error("Error fetching farm data:", error))
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   // ESP 세부 정보를 가져오는 함수
@@ -366,7 +370,20 @@ const UserFarmManagement = () => {
           내 장치 관리
         </Button>
       </div>
-      {farms.length > 0 ? (
+      {loading ? (
+        <div className="text-center">
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+            <Spinner
+              animation="border"
+              variant="success"
+              style={{ width: "3rem", height: "3rem", borderWidth: "0.25rem" }}
+            />
+            <p style={{ marginLeft: "1rem", fontSize: "1.5rem", color: "#5a9a5a" }}>
+              로딩 중... 기다려주세요
+            </p>
+          </div>
+        </div>
+      ) : farms.length > 0 ? (
         farms.map((farm, idx) => (
           <div key={farm.farm_id} className="mb-5">
             <Card className="mb-4 shadow" style={{ borderRadius: "15px", backgroundColor: "#f1f8f4", border: "1px solid #ddd" }}>
@@ -579,7 +596,9 @@ const UserFarmManagement = () => {
           </div>
         ))
       ) : (
-        <p className="text-muted text-center">농장 정보가 없습니다.</p>
+        <div className="text-center">
+          <h3 style={{ color: "#5a9a5a" }}>아직 생성된 농장이 없습니다 🌱</h3>
+        </div>
       )}
 
       

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Button, Alert, Tabs, Tab } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Alert, Tabs, Tab, Spinner } from "react-bootstrap";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -15,44 +15,75 @@ ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip,
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
+// 센서 타입별 설정
+const SENSOR_CONFIGS = {
+  '온도': {
+    icon: '🌡️',
+    label: '온도(°C)',
+    color: 'rgba(255, 99, 132, 0.8)',
+    bgColor: 'rgba(255, 99, 132, 0.2)',
+    textColor: 'text-danger'
+  },
+  '습도': {
+    icon: '💧',
+    label: '습도(%)',
+    color: 'rgba(54, 162, 235, 0.8)',
+    bgColor: 'rgba(54, 162, 235, 0.2)',
+    textColor: 'text-info'
+  },
+  '조도': {
+    icon: '☀️',
+    label: '조도(lux)',
+    color: 'rgba(255, 193, 7, 0.8)',
+    bgColor: 'rgba(255, 193, 7, 0.2)',
+    textColor: 'text-warning'
+  }
+};
+
 function UserDataVisualization() {
   const [farms, setFarms] = useState([]);
   const [selectedFarmId, setSelectedFarmId] = useState(null);
   const [sensorData, setSensorData] = useState([]);
   const [timeFrame, setTimeFrame] = useState("7days");
-  const [chartHeight, setChartHeight] = useState(100); // 기본 높이 설정
+  const [chartHeight, setChartHeight] = useState(100);
+  const [loading, setLoading] = useState(true);
 
   // 화면 크기에 따른 차트 높이 조정
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth <= 768) { // 모바일 화면 크기
-        setChartHeight(200); // 모바일에서 차트 높이를 200으로 설정
-      } else { // 데스크탑 화면 크기
-        setChartHeight(100); // 데스크탑에서 차트 높이를 100으로 설정
-      }
+      setChartHeight(window.innerWidth <= 768 ? 200 : 100);
     };
 
-    handleResize(); // 초기 화면 크기 설정
-    window.addEventListener("resize", handleResize); // 화면 크기 변경 시 처리
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-    return () => window.removeEventListener("resize", handleResize); // 컴포넌트 언마운트 시 이벤트 제거
-  }, []); // 빈 배열을 넣어 최초 한 번만 실행되도록 수정
-
-  // 농장 목록과 데이터 가져오기
+  // 농장 목록 가져오기
   useEffect(() => {
     const fetchFarms = async () => {
       try {
         const response = await fetch(`${BASE_URL}/user/farm-list`, {
           method: "GET",
-          credentials: "include",  // 쿠키 포함
+          credentials: "include",
         });
         const farmsData = await response.json();
-        setFarms(farmsData);
-        if (farmsData.length > 0) {
-          setSelectedFarmId(farmsData[0].farmId); // 기본으로 첫 번째 농장 선택
+        
+        if (Array.isArray(farmsData)) {
+          setFarms(farmsData);
+          if (farmsData.length > 0) {
+            setSelectedFarmId(farmsData[0].farmId);
+          }
+        } else {
+          setFarms([]);
+          setSelectedFarmId(null);
         }
       } catch (error) {
         console.error("Error fetching farms:", error);
+        setFarms([]);
+        setSelectedFarmId(null);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -66,19 +97,13 @@ function UserDataVisualization() {
         try {
           const response = await fetch(`${BASE_URL}/user/sensor-data?farmId=${selectedFarmId}&timeFrame=${timeFrame}`, {
             method: "GET",
-            credentials: "include",  // 쿠키 포함
+            credentials: "include",
           });
           const data = await response.json();
-
-          // 데이터가 배열 형식인지 확인하고, 아닐 경우 빈 배열로 설정
-          if (Array.isArray(data)) {
-            setSensorData(data);
-          } else {
-            setSensorData([]); // 데이터를 배열로 변환할 수 없으면 빈 배열로 설정
-          }
+          setSensorData(Array.isArray(data) ? data : []);
         } catch (error) {
           console.error("Error fetching data:", error);
-          setSensorData([]); // 오류 발생 시 빈 배열로 설정
+          setSensorData([]);
         }
       };
 
@@ -86,151 +111,135 @@ function UserDataVisualization() {
     }
   }, [timeFrame, selectedFarmId]);
 
-  const labels = sensorData.map((entry) => entry.date);
-  const temperatures = sensorData.map((entry) => entry.temperature);
-  const humidities = sensorData.map((entry) => entry.humidity);
-  const soil_moistures = sensorData.map((entry) => entry.soil_moisture);
-
   // 데이터 유효성 검사 함수
   const hasValidData = (data) => {
     return data && data.length > 0 && data.some(value => value !== null && value !== undefined && !isNaN(value));
   };
 
-  // 센서 존재 여부 확인
-  const hasTemperatureSensor = temperatures.some(value => value !== null);
-  const hasHumiditySensor = humidities.some(value => value !== null);
-  const hasSoilMoistureSensor = soil_moistures.some(value => value !== null);
+  // 센서 데이터 차트 생성 함수
+  const createChartData = (sensorType, data) => {
+    const config = SENSOR_CONFIGS[sensorType] || {
+      icon: '📊',
+      label: sensorType,
+      color: 'rgba(75, 192, 192, 0.8)',
+      bgColor: 'rgba(75, 192, 192, 0.2)',
+      textColor: 'text-secondary'
+    };
 
-  const temperatureChart = {
-    labels,
-    datasets: [
-      {
-        label: "온도(°C)",
-        data: temperatures,
-        borderColor: "rgba(255, 99, 132, 0.8)",
-        backgroundColor: "rgba(255, 99, 132, 0.2)",
+    return {
+      labels: data.map(entry => entry.date),
+      datasets: [{
+        label: config.label,
+        data: data.map(entry => entry[sensorType]),
+        borderColor: config.color,
+        backgroundColor: config.bgColor,
         tension: 0.3,
-      },
-    ],
+      }]
+    };
   };
 
-  const humidityChart = {
-    labels,
-    datasets: [
-      {
-        label: "습도(%)",
-        data: humidities,
-        borderColor: "rgba(54, 162, 235, 0.8)",
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        tension: 0.3,
-      },
-    ],
-  };
-
-  const moistureChart = {
-    labels,
-    datasets: [
-      {
-        label: "토양 수분(%)",
-        data: soil_moistures,
-        borderColor: "rgba(75, 192, 192, 0.8)",
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        tension: 0.3,
-      },
-    ],
+  // 센서 타입 목록 가져오기
+  const getSensorTypes = () => {
+    if (sensorData.length === 0) return [];
+    return Object.keys(sensorData[0]).filter(key => key !== 'date');
   };
 
   return (
     <Container className="py-5">
       <h2 className="text-center text-success fw-bold mb-4">📊 환경 그래프</h2>
 
-      {/* 농장 탭 */}
-      <Tabs
-        id="farm-tabs"
-        activeKey={selectedFarmId}
-        onSelect={(farmId) => setSelectedFarmId(farmId)}
-        className="mb-4"
-        style={{ borderBottom: "2px solid #ddd" }}
-      >
-        {farms.map((farm) => (
-          <Tab eventKey={farm.farmId} title={<span style={{ color: "black" }}>{farm.farmName}</span>} key={farm.farmId}>
-            <Row className="mb-4">
-              <Col md={12} className="text-center">
-                <Button
-                  variant={timeFrame === "7days" ? "success" : "outline-success"}
-                  onClick={() => setTimeFrame("7days")}
-                  className="mx-2 btn-lg"
-                >
-                  7일 데이터
-                </Button>
-                <Button
-                  variant={timeFrame === "30days" ? "success" : "outline-success"}
-                  onClick={() => setTimeFrame("30days")}
-                  className="mx-2 btn-lg"
-                >
-                  30일 데이터
-                </Button>
-              </Col>
-            </Row>
+      {loading ? (
+        <div className="text-center">
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+            <Spinner
+              animation="border"
+              variant="success"
+              style={{ width: "3rem", height: "3rem", borderWidth: "0.25rem" }}
+            />
+            <p style={{ marginLeft: "1rem", fontSize: "1.5rem", color: "#5a9a5a" }}>
+              로딩 중... 기다려주세요
+            </p>
+          </div>
+        </div>
+      ) : !Array.isArray(farms) || farms.length === 0 ? (
+        <div className="text-center">
+          <h3 style={{ color: "#5a9a5a" }}>아직 생성된 농장이 없습니다 🌱</h3>
+        </div>
+      ) : (
+        <>
+          <Tabs
+            id="farm-tabs"
+            activeKey={selectedFarmId}
+            onSelect={(farmId) => setSelectedFarmId(farmId)}
+            className="mb-4"
+            style={{ borderBottom: "2px solid #ddd" }}
+          >
+            {farms.map((farm) => (
+              <Tab eventKey={farm.farmId} title={<span style={{ color: "black" }}>{farm.farmName}</span>} key={farm.farmId}>
+                <Row className="mb-4">
+                  <Col md={12} className="text-center">
+                    <Button
+                      variant={timeFrame === "7days" ? "success" : "outline-success"}
+                      onClick={() => setTimeFrame("7days")}
+                      className="mx-2 btn-lg"
+                    >
+                      7일 데이터
+                    </Button>
+                    <Button
+                      variant={timeFrame === "30days" ? "success" : "outline-success"}
+                      onClick={() => setTimeFrame("30days")}
+                      className="mx-2 btn-lg"
+                    >
+                      30일 데이터
+                    </Button>
+                  </Col>
+                </Row>
 
-            {/* 차트 영역 */}
-            <Row className="mb-4">
-              <Col md={12}>
-                {hasTemperatureSensor && (
-                  <Card className="shadow-sm mb-4">
-                    <Card.Body>
-                      <h5 className="text-danger mb-3">🌡️ 온도 변화</h5>
-                      {hasValidData(temperatures) ? (
-                        <Line data={temperatureChart} height={chartHeight} options={{ responsive: true }} />
-                      ) : (
-                        <Alert variant="info" className="text-center mb-0">
-                          데이터가 없습니다.
-                        </Alert>
-                      )}
-                    </Card.Body>
-                  </Card>
-                )}
-
-                {hasHumiditySensor && (
-                  <Card className="shadow-sm mb-4">
-                    <Card.Body>
-                      <h5 className="text-info mb-3">💧 습도 변화</h5>
-                      {hasValidData(humidities) ? (
-                        <Line data={humidityChart} height={chartHeight} options={{ responsive: true }} />
-                      ) : (
-                        <Alert variant="info" className="text-center mb-0">
-                          데이터가 없습니다.
-                        </Alert>
-                      )}
-                    </Card.Body>
-                  </Card>
-                )}
-
-                {hasSoilMoistureSensor && (
-                  <Card className="shadow-sm mb-4">
-                    <Card.Body>
-                      <h5 className="text-teal mb-3">🌱 토양 수분 변화</h5>
-                      {hasValidData(soil_moistures) ? (
-                        <Line data={moistureChart} height={chartHeight} options={{ responsive: true }} />
-                      ) : (
-                        <Alert variant="info" className="text-center mb-0">
-                          데이터가 없습니다.
-                        </Alert>
-                      )}
-                    </Card.Body>
-                  </Card>
-                )}
-
-                {!hasTemperatureSensor && !hasHumiditySensor && !hasSoilMoistureSensor && (
-                  <Alert variant="warning" className="text-center">
-                    설치된 센서가 없습니다.
-                  </Alert>
-                )}
-              </Col>
-            </Row>
-          </Tab>
-        ))}
-      </Tabs>
+                <Row className="mb-4">
+                  <Col md={12}>
+                    {getSensorTypes().length > 0 ? (
+                      getSensorTypes().map(sensorType => {
+                        const config = SENSOR_CONFIGS[sensorType] || {
+                          icon: '📊',
+                          label: sensorType,
+                          color: 'rgba(75, 192, 192, 0.8)',
+                          bgColor: 'rgba(75, 192, 192, 0.2)',
+                          textColor: 'text-secondary'
+                        };
+                        
+                        return (
+                          <Card className="shadow-sm mb-4" key={sensorType}>
+                            <Card.Body>
+                              <h5 className={`${config.textColor} mb-3`}>
+                                {config.icon} {sensorType} 변화
+                              </h5>
+                              {hasValidData(sensorData.map(entry => entry[sensorType])) ? (
+                                <Line 
+                                  data={createChartData(sensorType, sensorData)} 
+                                  height={chartHeight} 
+                                  options={{ responsive: true }} 
+                                />
+                              ) : (
+                                <Alert variant="info" className="text-center mb-0">
+                                  데이터가 없습니다.
+                                </Alert>
+                              )}
+                            </Card.Body>
+                          </Card>
+                        );
+                      })
+                    ) : (
+                      <Alert variant="warning" className="text-center">
+                        설치된 센서가 없습니다.
+                      </Alert>
+                    )}
+                  </Col>
+                </Row>
+              </Tab>
+            ))}
+          </Tabs>
+        </>
+      )}
     </Container>
   );
 }

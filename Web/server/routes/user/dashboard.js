@@ -36,8 +36,8 @@ router.get('/user/farm-list', async (req, res) => {
 
 // ✅ User의 대시보드 (농장별)
 router.get('/user/dashboard/:farmId', async (req, res) => {
-  const { farmId } = req.params;  // farmId를 URL 파라미터로 받음
-  const userId = req.user.userId;  // 인증된 사용자 ID (JWT에서 추출)
+  const { farmId } = req.params;
+  const userId = req.user.userId;
 
   try {
     // 작물 정보 (농장 정보)
@@ -47,6 +47,7 @@ router.get('/user/dashboard/:farmId', async (req, res) => {
       WHERE farm_id = $1 AND user_id = $2
       LIMIT 1
     `, [farmId, userId]);
+
 
     if (!userPlant.rows.length) {
       return res.status(404).json({ error: '농장을 찾을 수 없습니다.' });
@@ -59,105 +60,148 @@ router.get('/user/dashboard/:farmId', async (req, res) => {
       WHERE farm_id = $1
     `, [farmId]);
 
-    if (!espsResult.rows.length) {
-      return res.status(404).json({ error: 'ESP 장치를 찾을 수 없습니다.' });
-    }
-
     // ESP 장치들의 ID 배열을 가져옴
     const espIds = espsResult.rows.map(row => row.esp_id);
 
-    // 🌡️ 센서 목록 (해당 ESP 장치들에 속한 센서들)
-    const sensorsResult = await pool.query(`
-      SELECT s.sensor_id, s.sensor_type, s.sensor_name, s.gpio_pin, s.unit, s.is_active, s.installed_at
-      FROM sensors s
-      WHERE s.esp_id = ANY($1::int[])
-    `, [espIds]);
+    // ESP 장치가 없는 경우에도 계속 진행
+    let sensors = [];
+    let actuators = [];
+    let recentSensorData = { rows: [] };
+    let dailySensorLogs = [];
 
-    const sensors = sensorsResult.rows.map(sensor => ({
-      id: sensor.sensor_id,
-      type: sensor.sensor_type,
-      name: sensor.sensor_name,
-      pin: sensor.gpio_pin,
-      unit: sensor.unit,
-      active: sensor.is_active,
-      installedAt: sensor.installed_at
-    }));
+    if (espIds.length > 0) {
+      // 🌡️ 센서 목록 (해당 ESP 장치들에 속한 센서들)
+      const sensorsResult = await pool.query(`
+        SELECT s.sensor_id, s.sensor_type, s.sensor_name, s.gpio_pin, s.unit, s.is_active, s.installed_at
+        FROM sensors s
+        WHERE s.esp_id = ANY($1::int[])
+      `, [espIds]);
 
-    // ⚙️ 액추에이터 목록 (해당 ESP 장치들에 속한 액추에이터들)
-    const actuatorsResult = await pool.query(`
-      SELECT a.actuator_id, a.actuator_type, a.actuator_name, a.gpio_pin, a.is_active, a.installed_at
-      FROM actuators a
-      WHERE a.esp_id = ANY($1::int[])
-    `, [espIds]);
+      sensors = sensorsResult.rows.map(sensor => ({
+        id: sensor.sensor_id,
+        type: sensor.sensor_type,
+        name: sensor.sensor_name,
+        pin: sensor.gpio_pin,
+        unit: sensor.unit,
+        active: sensor.is_active,
+        installedAt: sensor.installed_at
+      }));
 
-    const actuators = actuatorsResult.rows.map(act => ({
-      id: act.actuator_id,
-      type: act.actuator_type,
-      name: act.actuator_name,
-      pin: act.gpio_pin,
-      active: act.is_active,
-      installedAt: act.installed_at
-    }));
+      // ⚙️ 액추에이터 목록 (해당 ESP 장치들에 속한 액추에이터들)
+      const actuatorsResult = await pool.query(`
+        SELECT a.actuator_id, a.actuator_type, a.actuator_name, a.gpio_pin, a.is_active, a.installed_at
+        FROM actuators a
+        WHERE a.esp_id = ANY($1::int[])
+      `, [espIds]);
 
-    // 최신 센서 데이터 (최근 1개)
-    const recentSensorData = await pool.query(`
-      WITH latest_time AS (
-        SELECT MAX(time) as max_time
-        FROM sensor_logs
-        JOIN sensors ON sensor_logs.sensor_id = sensors.sensor_id
-        JOIN esps ON sensors.esp_id = esps.esp_id 
-        WHERE esps.farm_id = $1
-      )
-      SELECT 
-        sl.time,
-        MAX(CASE WHEN s.sensor_type = '온도' THEN sl.sensor_value END) as temperature,
-        MAX(CASE WHEN s.sensor_type = '습도' THEN sl.sensor_value END) as humidity,
-        MAX(CASE WHEN s.sensor_type = '토양 수분' THEN sl.sensor_value END) as soil_moisture
-      FROM sensor_logs sl
-      JOIN sensors s ON sl.sensor_id = s.sensor_id
-      JOIN esps e ON s.esp_id = e.esp_id
-      WHERE e.farm_id = $1 
-        AND sl.time = (SELECT max_time FROM latest_time)
-      GROUP BY sl.time
-    `, [farmId]);
+      actuators = actuatorsResult.rows.map(act => ({
+        id: act.actuator_id,
+        type: act.actuator_type,
+        name: act.actuator_name,
+        pin: act.gpio_pin,
+        active: act.is_active,
+        installedAt: act.installed_at
+      }));
 
-    // ✅ 1시간 단위 평균값 집계 (최근 24시간)
-    const hourlyAverages = await pool.query(`
-      SELECT 
-        time_bucket('1 hour', sl.time) as hour,
-        AVG(CASE WHEN s.sensor_type = '온도' THEN sl.sensor_value END) as avg_temperature,
-        AVG(CASE WHEN s.sensor_type = '습도' THEN sl.sensor_value END) as avg_humidity,
-        AVG(CASE WHEN s.sensor_type = '토양 수분' THEN sl.sensor_value END) as avg_soil_moisture
-      FROM sensor_logs sl
-      JOIN sensors s ON sl.sensor_id = s.sensor_id
-      JOIN esps e ON s.esp_id = e.esp_id
-      WHERE e.farm_id = $1
-        AND sl.time > NOW() - INTERVAL '24 hours'
-      GROUP BY hour
-      ORDER BY hour
-    `, [farmId]);
+      // 센서 타입 목록 가져오기
+      const sensorTypes = [...new Set(sensorsResult.rows.map(s => s.sensor_type))].filter(Boolean);
 
-    const dailySensorLogs = hourlyAverages.rows.map(row => ({
-      time: row.hour,
-      temperature: Number(row.avg_temperature),
-      humidity: Number(row.avg_humidity),
-      soil_moisture: Number(row.avg_soil_moisture)
-    }));
+      if (sensorTypes.length === 0) {
+        return res.json({
+          crop: userPlant.rows[0]?.plant_name ?? '등록된 작물 없음',
+          plantedAt: userPlant.rows[0]?.created_at ?? null,
+          sensors: sensors,
+          actuators: actuators
+        });
+      }
+
+      // CASE 문 동적 생성
+      const caseStatements = sensorTypes.map(type => 
+        `MAX(CASE WHEN s.sensor_type = '${type}' THEN sl.sensor_value END) as ${type}`
+      ).join(',\n          ');
+
+      // 최신 센서 데이터 (최근 1개)
+      const recentSensorQuery = `
+        WITH latest_time AS (
+          SELECT MAX(time) as max_time
+          FROM sensor_logs
+          JOIN sensors ON sensor_logs.sensor_id = sensors.sensor_id
+          JOIN esps ON sensors.esp_id = esps.esp_id 
+          WHERE esps.farm_id = $1
+        )
+        SELECT 
+          sl.time,
+          ${caseStatements}
+        FROM sensor_logs sl
+        JOIN sensors s ON sl.sensor_id = s.sensor_id
+        JOIN esps e ON s.esp_id = e.esp_id
+        WHERE e.farm_id = $1 
+          AND sl.time = (SELECT max_time FROM latest_time)
+        GROUP BY sl.time
+      `;
+      recentSensorData = await pool.query(recentSensorQuery, [farmId]);
+
+      // 1시간 단위 평균값 집계 (최근 24시간)
+      const avgCaseStatements = sensorTypes.map(type => 
+        `AVG(CASE WHEN s.sensor_type = '${type}' THEN sl.sensor_value END) as avg_${type}`
+      ).join(',\n          ');
+
+      const hourlyAveragesQuery = `
+        SELECT 
+          time_bucket('1 hour', sl.time) as hour,
+          ${avgCaseStatements}
+        FROM sensor_logs sl
+        JOIN sensors s ON sl.sensor_id = s.sensor_id
+        JOIN esps e ON s.esp_id = e.esp_id
+        WHERE e.farm_id = $1
+          AND sl.time > NOW() - INTERVAL '24 hours'
+        GROUP BY hour
+        ORDER BY hour
+      `;
+      const hourlyAverages = await pool.query(hourlyAveragesQuery, [farmId]);
+
+      // 데이터 매핑
+      dailySensorLogs = hourlyAverages.rows.map(row => {
+        const log = { time: row.hour };
+        sensorTypes.forEach(type => {
+          log[type] = Number(row[`avg_${type}`]);
+        });
+        return log;
+      });
+    }
 
     // 응답 데이터
-    res.json({
+    const responseData = {
       crop: userPlant.rows[0]?.plant_name ?? '등록된 작물 없음',
-      plantedAt: userPlant.rows[0]?.created_at ?? null,
-      sensors: sensors.length > 0 ? sensors : [],
-      actuators: actuators.length > 0 ? actuators : [],
-      sensorLogs: recentSensorData.rows.length > 0 ? recentSensorData.rows.reverse() : [],
-      dailySensorLogs: dailySensorLogs.length > 0 ? dailySensorLogs : [] // ✅ 1시간 단위 하루치 센서 로그
-    });
+      plantedAt: userPlant.rows[0]?.created_at ?? null
+    };
+
+    // 센서가 있는 경우에만 센서 목록 추가
+    if (sensors.length > 0) {
+      responseData.sensors = sensors;
+    }
+
+    // 액추에이터가 있는 경우에만 액추에이터 목록 추가
+    if (actuators.length > 0) {
+      responseData.actuators = actuators;
+    }
+
+    // 최신 센서 데이터가 있는 경우에만 추가
+    if (recentSensorData.rows.length > 0) {
+      responseData.sensorLogs = recentSensorData.rows.reverse();
+    }
+
+    // 일일 센서 로그가 있는 경우에만 추가
+    if (dailySensorLogs.length > 0) {
+      responseData.dailySensorLogs = dailySensorLogs;
+    }
+
+    res.json(responseData);
   } catch (err) {
-    console.error(err);
+    console.error('대시보드 데이터 조회 중 에러 발생:', err);
     res.status(500).json({ error: '데이터 불러오기 실패' });
   }
 });
 
-  module.exports = router;
+module.exports = router;
 

@@ -7,37 +7,26 @@ VALUES
 INSERT INTO farms (user_id, farm_name, location, farm_size, plant_name, notes, temperature_optimal, humidity_optimal, soil_moisture_optimal)
 VALUES
   (1, '농장 A', '서울시 강남구', 500, '토마토', '양액 농법 사용', 25.0, 60.0, 30.0),
-  (1, '농장 B', '경기도 용인시', 800, '상추', '비닐하우스에서 재배', 22.0, 55.0, 35.0),
-  (2, '농장 C', '부산시 기장군', 1000, '배추', '유기농 방식', 20.0, 65.0, 40.0);
+  (1, '농장 B', '경기도 용인시', 800, '상추', '비닐하우스에서 재배', 22.0, 55.0, 35.0);
 
 INSERT INTO esps (farm_id, esp_name, device_type, ip_address, is_connected)
 VALUES
-  (1, 'esp1','sensor', '192.168.0.101', TRUE), -- 1
-  (1, 'esp2','sensor', '192.168.0.102', FALSE), -- 2
-  (1, 'esp3','sensor', '192.168.0.101', TRUE), -- 3
-  (2, 'esp4','sensor', '192.168.0.102', FALSE), -- 4
-  (3, 'esp5','sensor','192.168.0.101', TRUE), -- 5
-  (3, 'esp6','sensor',  '192.168.0.102', FALSE), -- 6
-  (1, 'esp7','actuator', '192.168.0.101', TRUE), -- 7
-  (1,  'esp8','actuator', '192.168.0.102', FALSE), -- 8
-  (1, 'esp9','actuator', '192.168.0.101', TRUE), -- 9
-  (2,  'esp10','actuator', '192.168.0.201', TRUE);
+  (1, '동아대 실내 스마트팜 온도 센서','sensor', '192.168.0.101', TRUE),
+  (1, '동아대 실내 스마트팜 습도 센서','sensor', '192.168.0.102', FALSE),
+  (1, '동아대 실내 스마트팜 토양 수분 센서','sensor', '192.168.0.101', TRUE),
+  (1, '동아대 실내 스마트팜 LED','actuator', '192.168.0.101', TRUE),
+  (1,  '동아대 실내 스마트팜 FAN','actuator', '192.168.0.102', FALSE);
 
 INSERT INTO sensors (esp_id, sensor_type, device_name, sensor_name, gpio_pin, unit, is_active)
 VALUES
-  (1, '온도', 'DS18B20 방수 온도 센서',  'temperature', 4, '°C', TRUE),
-  (2, '습도', 'SHT31-D 온습도 센서', 'humidity',  4, '%', TRUE),
-  (3, '토양 수분', 'Capacitive Soil Moisture Sensor v2.0', 'soil mositure',  4, '%', TRUE),
-  (4, '토양 수분', 'soil_moisture',  'soil_moisture', 4, '%', TRUE),
-  (5, '온도', 'soil_moisture' , 'soil_moisture', 4, '°C', TRUE),
-  (6, '습도', 'soil_moisture' , 'soil_moisture', 4, '%', TRUE);
+  (1, '온도', 'DHT11 온습도 센서',  'temperature', 4, '°C', TRUE),
+  (2, '습도', 'DHT11 온습도 센서', 'humidity',  4, '%', TRUE),
+  (3, '조도', 'Cds 조도 센서', 'lux',  4, '%', TRUE);
 
 INSERT INTO actuators (esp_id, actuator_type, device_name, actuator_name, gpio_pin, is_active)
 VALUES
-  (7, 'LED', 'LED',  '조명', 5, TRUE),
-  (8, '팬', '팬',  '팬', 5, TRUE),
-  (9, 'LED', 'LED', '조명', 5, FALSE),
-  (10, '선풍기', '선풍기', '팬', 5, TRUE);
+  (4, 'LED', 'LED',  '조명', 5, TRUE),
+  (5, '팬', '팬',  '팬', 5, TRUE);
 
 
 -- 🌡️ 센서 로그 더미 데이터 (5시간 동안 10분 단위)
@@ -107,38 +96,40 @@ INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value) VALUES
 (NOW() - INTERVAL '20 minutes', 2, '습도', 67.8),
 (NOW() - INTERVAL '10 minutes', 2, '습도', 68.0);
 
--- 토양 수분 센서 데이터
+-- 조도 센서 데이터
 INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value) VALUES
-(NOW() - INTERVAL '5 hours', 3, '토양수분', 45.0),
-(NOW() - INTERVAL '4 hours 50 minutes', 3, '토양 수분', 45.3),
-(NOW() - INTERVAL '4 hours 40 minutes', 3, '토양 수분', 45.5),
-(NOW() - INTERVAL '4 hours 30 minutes', 3, '토양 수분', 45.8),
-(NOW() - INTERVAL '4 hours 20 minutes', 3, '토양 수분', 46.0),
-(NOW() - INTERVAL '4 hours 10 minutes', 3, '토양 수분', 46.2),
-(NOW() - INTERVAL '4 hours', 3, '토양수분', 46.5),
-(NOW() - INTERVAL '3 hours 50 minutes', 3, '토양 수분', 46.8),
-(NOW() - INTERVAL '3 hours 40 minutes', 3, '토양 수분', 47.0),
-(NOW() - INTERVAL '3 hours 30 minutes', 3, '토양 수분', 47.2),
-(NOW() - INTERVAL '3 hours 20 minutes', 3, '토양 수분', 47.5),
-(NOW() - INTERVAL '3 hours 10 minutes', 3, '토양 수분', 47.8),
-(NOW() - INTERVAL '3 hours', 3, '토양수분', 48.0),
-(NOW() - INTERVAL '2 hours 50 minutes', 3, '토양 수분', 48.3),
-(NOW() - INTERVAL '2 hours 40 minutes', 3, '토양 수분', 48.5),
-(NOW() - INTERVAL '2 hours 30 minutes', 3, '토양 수분', 48.8),
-(NOW() - INTERVAL '2 hours 20 minutes', 3, '토양 수분', 49.0),
-(NOW() - INTERVAL '2 hours 10 minutes', 3, '토양 수분', 49.3),
-(NOW() - INTERVAL '2 hours', 3, '토양수분', 49.5),
-(NOW() - INTERVAL '1 hour 50 minutes', 3, '토양 수분', 49.8),
-(NOW() - INTERVAL '1 hour 40 minutes', 3, '토양 수분', 50.0),
-(NOW() - INTERVAL '1 hour 30 minutes', 3, '토양 수분', 50.2),
-(NOW() - INTERVAL '1 hour 20 minutes', 3, '토양 수분', 50.5),
-(NOW() - INTERVAL '1 hour 10 minutes', 3, '토양 수분', 50.8),
-(NOW() - INTERVAL '1 hour', 3, '토양수분', 51.0),
-(NOW() - INTERVAL '50 minutes', 3, '토양 수분', 51.2),
-(NOW() - INTERVAL '40 minutes', 3, '토양 수분', 51.5),
-(NOW() - INTERVAL '30 minutes', 3, '토양 수분', 51.7),
-(NOW() - INTERVAL '20 minutes', 3, '토양 수분', 52.0),
-(NOW() - INTERVAL '10 minutes', 3, '토양 수분', 52.2);
+(NOW() - INTERVAL '5 hours', 3, '조도', 150.0),
+(NOW() - INTERVAL '4 hours 50 minutes', 3, '조도', 170.5),
+(NOW() - INTERVAL '4 hours 40 minutes', 3, '조도', 200.2),
+(NOW() - INTERVAL '4 hours 30 minutes', 3, '조도', 350.8),
+(NOW() - INTERVAL '4 hours 20 minutes', 3, '조도', 600.0),
+(NOW() - INTERVAL '4 hours 10 minutes', 3, '조도', 820.4),
+(NOW() - INTERVAL '4 hours', 3, '조도', 1200.0),
+(NOW() - INTERVAL '3 hours 50 minutes', 3, '조도', 2300.6),
+(NOW() - INTERVAL '3 hours 40 minutes', 3, '조도', 4500.0),
+(NOW() - INTERVAL '3 hours 30 minutes', 3, '조도', 7000.0),
+(NOW() - INTERVAL '3 hours 20 minutes', 3, '조도', 8200.3),
+(NOW() - INTERVAL '3 hours 10 minutes', 3, '조도', 9000.0),
+(NOW() - INTERVAL '3 hours', 3, '조도', 9500.5),
+(NOW() - INTERVAL '2 hours 50 minutes', 3, '조도', 9100.2),
+(NOW() - INTERVAL '2 hours 40 minutes', 3, '조도', 8700.0),
+(NOW() - INTERVAL '2 hours 30 minutes', 3, '조도', 8000.0),
+(NOW() - INTERVAL '2 hours 20 minutes', 3, '조도', 6000.0),
+(NOW() - INTERVAL '2 hours 10 minutes', 3, '조도', 4000.0),
+(NOW() - INTERVAL '2 hours', 3, '조도', 2800.0),
+(NOW() - INTERVAL '1 hour 50 minutes', 3, '조도', 1800.0),
+(NOW() - INTERVAL '1 hour 40 minutes', 3, '조도', 1000.0),
+(NOW() - INTERVAL '1 hour 30 minutes', 3, '조도', 800.0),
+(NOW() - INTERVAL '1 hour 20 minutes', 3, '조도', 500.0),
+(NOW() - INTERVAL '1 hour 10 minutes', 3, '조도', 300.0),
+(NOW() - INTERVAL '1 hour', 3, '조도', 200.0),
+(NOW() - INTERVAL '50 minutes', 3, '조도', 150.0),
+(NOW() - INTERVAL '40 minutes', 3, '조도', 130.0),
+(NOW() - INTERVAL '30 minutes', 3, '조도', 120.0),
+(NOW() - INTERVAL '20 minutes', 3, '조도', 110.0),
+(NOW() - INTERVAL '10 minutes', 3, '조도', 100.0);
+
+
 
 
 -- 30일치 데이터 삽입
@@ -163,17 +154,16 @@ UNION ALL
 
 SELECT
     NOW() - INTERVAL '29 days' + (INTERVAL '1 day' * series.day) AS time,
-    3,  -- 토양 수분 센서
-    '토양 수분' AS sensor_type,
-    ROUND((20 + (RANDOM() * 30))::numeric, 2)  -- 20 ~ 50 사이의 랜덤 토양 수분 값
+    3,
+    '조도' AS sensor_type,
+    ROUND((100 + (RANDOM() * 9900))::numeric, 2)  -- 100 ~ 10,000 lux
 FROM generate_series(0, 29) AS series(day);
 
 
 INSERT INTO actuator_logs (actuator_id, action, controlled_by, controlled_at)
 VALUES
   (1, 'on', '관리자', '2025-05-01 12:00:00'),
-  (2, 'off', '관리자', '2025-05-01 12:05:00'),
-  (3, 'on', '관리자', '2025-05-01 12:10:00');
+  (2, 'off', '관리자', '2025-05-01 12:05:00');
 
 
 -- 📝 게시글 더미 데이터
@@ -346,6 +336,13 @@ VALUES
 '/uploads/DS18B20.jpg',
 '6.5x2.5 cm', '-55~125 ℃', '±0.5 ℃' , '℃'),
 
+('DHT11 디지털 온습도 센서', 'sensor', '온도', 12000, 'digital', NULL, 
+ '온도 및 습도를 측정하는 디지털 센서', 
+ 'DHT11은 온도와 습도를 동시에 측정할 수 있는 디지털 센서로, 저비용 및 쉬운 사용이 장점입니다. ESP32 등 마이크로컨트롤러와 쉽게 연동되며, 온도는 0~50℃, 습도는 20~90% RH 범위를 지원합니다.', 
+ 40, 
+ '/uploads/DHT11.jpg', 
+ '15.5x12x5.5 mm', '온도: 0~50℃, 습도: 20~90% RH', '±2℃(온도), ±5%(습도)', '℃/%'),
+
 -- 습도 센서
 
 ('HIH-4030 Analog 습도 센서', 'sensor', '습도', 7900, 'Analog', NULL, 
@@ -367,6 +364,13 @@ VALUES
 '/uploads/SHT31-D.jpg',
 '2.5x2.5x0.9 cm',  '0~100 %RH', ' ±2 %RH', '%'),
 
+('DHT11 디지털 온습도 센서', 'sensor', '습도', 12000, 'digital', NULL, 
+ '온도 및 습도를 측정하는 디지털 센서', 
+ 'DHT11은 온도와 습도를 동시에 측정할 수 있는 디지털 센서로, 저비용 및 쉬운 사용이 장점입니다. ESP32 등 마이크로컨트롤러와 쉽게 연동되며, 온도는 0~50℃, 습도는 20~90% RH 범위를 지원합니다.', 
+ 40, 
+ '/uploads/DHT11.jpg', 
+ '15.5x12x5.5 mm', '온도: 0~50℃, 습도: 20~90% RH', '±2℃(온도), ±5%(습도)', '℃/%'),
+
 -- 토양 수분 센서
 
 ('Capacitive 토양 수분 센서 v2.0', 'sensor', '토양 수분', 7800, 'analog' , NULL,
@@ -387,7 +391,15 @@ VALUES
  '상대 수분값 측정. 버저 기능 포함. 오픈소스 사용 가능.', 
  30, 
  '/uploads/Chirpsoil.jpg', 
- '6x2 cm', '0~100%', '상대값', '%');
+ '6x2 cm', '0~100%', '상대값', '%'),
+
+-- 조도 센서
+('CDS 조도 센서 (LDR)', 'sensor', '조도', 8000, 'analog', NULL, 
+ '빛의 세기에 따라 저항이 변하는 아날로그 조도 센서', 
+ 'CDS 또는 LDR 센서는 광에 반응하여 저항이 변하는 조도 센서입니다. 아날로그 값을 통해 밝기 수준을 측정할 수 있으며, 스마트팜 및 조명 제어 시스템에 적합합니다. ESP32와 아날로그 입력으로 쉽게 연결 가능합니다.', 
+ 60, 
+ '/uploads/CDS.jpg', 
+ '5x4 mm', '0~10,000 lux', 'N/A (상대값)', 'lux');
 
 
 
