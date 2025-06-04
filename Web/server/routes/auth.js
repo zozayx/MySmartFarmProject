@@ -11,18 +11,17 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 // 🌱 회원가입
 router.post('/signup', async (req, res) => {
   console.log('[✅ 요청 도착]');
-  const { email, password, user_name, nickname, farm_location } = req.body;
+  const { email, password, user_name, nickname } = req.body;
 
   try {
     console.log('[회원가입 시도]', { email, user_name, nickname });
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const farmLocationValue = farm_location ? farm_location : null;
 
     const result = await pool.query(
-      `INSERT INTO users (email, password, user_name, nickname, farm_location)
-       VALUES ($1, $2, $3, $4, $5) RETURNING user_id, role`,
-      [email, hashedPassword, user_name, nickname, farmLocationValue]
+      `INSERT INTO users (email, password, name, nickname)
+       VALUES ($1, $2, $3, $4) RETURNING user_id, role`,
+      [email, hashedPassword, user_name, nickname]
     );
 
     console.log('[회원가입 성공]', { userId: result.rows[0].user_id });
@@ -72,7 +71,7 @@ router.post('/login', async (req, res) => {
     console.log('[로그인 성공]', { userId: user.user_id, role: user.role });
 
     res
-      .cookie('token', token, { httpOnly: true, sameSite: 'Lax', maxAge: 7 * 24 * 60 * 60 * 1000 }) //나중에 보안을 위해선 secure: true 해야함 HTTPS 사용
+      .cookie('token', token, { httpOnly: true,secure: false, secure: false,sameSite: 'Lax', maxAge: 7 * 24 * 60 * 60 * 1000 }) //나중에 보안을 위해선 secure: true 해야함 HTTPS 사용
       .json({ success: true, role: user.role });
 
   } catch (err) {

@@ -9,7 +9,6 @@ function SignupPage() {
   const [password, setPassword] = useState("");
   const [userName, setUserName] = useState("");
   const [nickname, setNickname] = useState("");
-  const [farmLocation, setFarmLocation] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const navigate = useNavigate();
@@ -26,7 +25,6 @@ function SignupPage() {
           password,
           user_name: userName,
           nickname,
-          farm_location: farmLocation || null,
         }),
         credentials: "include",
       });
@@ -94,16 +92,6 @@ function SignupPage() {
               onChange={(e) => setNickname(e.target.value)}
               required
               placeholder="표시용 닉네임을 입력하세요"
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-4">
-            <Form.Label>농장 위치 (선택)</Form.Label>
-            <Form.Control
-              type="text"
-              value={farmLocation}
-              onChange={(e) => setFarmLocation(e.target.value)}
-              placeholder="예: 전라북도 익산시"
             />
           </Form.Group>
 
