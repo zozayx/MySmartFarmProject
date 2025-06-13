@@ -25,8 +25,8 @@ VALUES
 
 INSERT INTO actuators (esp_id, actuator_type, device_name, actuator_name, gpio_pin, is_active)
 VALUES
-  (4, 'LED', 'LED',  '조명', 5, TRUE),
-  (5, '팬', '팬',  '팬', 5, TRUE);
+  (4, 'LED', 'LED',  'led', 5, TRUE),
+  (5, '팬', '팬',  'fan', 5, TRUE);
 
 
 -- 🌡️ 센서 로그 더미 데이터 (5시간 동안 10분 단위)
@@ -128,9 +128,6 @@ INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value) VALUES
 (NOW() - INTERVAL '30 minutes', 3, '조도', 120.0),
 (NOW() - INTERVAL '20 minutes', 3, '조도', 110.0),
 (NOW() - INTERVAL '10 minutes', 3, '조도', 100.0);
-
-
-
 
 -- 30일치 데이터 삽입
 INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value)

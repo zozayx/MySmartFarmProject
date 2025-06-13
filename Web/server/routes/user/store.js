@@ -8,7 +8,7 @@ router.get('/store', async (req, res) => {
       const result = await pool.query(
         `SELECT store_id, name, type, subtype, price, image_url, description, details, communication, stock, created_at, updated_at, is_active
          FROM store
-         WHERE is_active = TRUE
+         WHERE is_active = TRUE and stock > 0
          ORDER BY created_at DESC`
       );
       res.json(result.rows);

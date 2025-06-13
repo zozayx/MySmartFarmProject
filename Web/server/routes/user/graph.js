@@ -16,15 +16,14 @@ router.get('/user/sensor-data', async (req, res) => {
     return res.status(400).json({ error: 'Farm ID is required' });
   }
 
-  const currentDate = moment();
+  const endDate = moment().endOf('day');  // 오늘 자정까지
   let startDate;
 
   if (timeFrame === '7days') {
-    startDate = currentDate.clone().subtract(7, 'days').format('YYYY-MM-DD');
+    startDate = moment().subtract(6, 'days').startOf('day');  // 7일 전 시작
   } else if (timeFrame === '30days') {
-    startDate = currentDate.clone().subtract(30, 'days').format('YYYY-MM-DD');
+    startDate = moment().subtract(29, 'days').startOf('day');  // 30일 전 시작
   }
-
 
   try {
     // 먼저 해당 농장의 모든 센서 타입을 조회
@@ -53,8 +52,11 @@ router.get('/user/sensor-data', async (req, res) => {
       GROUP BY DATE(time), sensor_logs.sensor_type
       ORDER BY DATE(time);
     `;
-    const result = await pool.query(query, [farmId, startDate, currentDate.format('YYYY-MM-DD')]);
-    
+    const result = await pool.query(query, [
+      farmId, 
+      startDate.format('YYYY-MM-DD'), 
+      endDate.format('YYYY-MM-DD')
+    ]);
 
     if (result.rows.length === 0) {
       return res.json([]);
