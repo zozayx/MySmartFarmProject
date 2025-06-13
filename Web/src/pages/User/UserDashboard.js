@@ -261,53 +261,59 @@ function UserDashboard() {
   }
 
   return (
-    <Container className="py-5">
+    <Container fluid className="px-3 py-4">
       {/* 알림을 제일 상단에 배치 */}
-    <Row className="mb-4">
-      <Col>
-        <Card className="text-center shadow-sm">
-          <Card.Body>
-            <h5 className="fw-bold text-warning">📣 알림</h5>
-            <p style={{ color: 'red' }}>⚠️ 급수 시스템에 문제가 발생했습니다! 확인이 필요합니다.</p>
-          </Card.Body>
-        </Card>
-      </Col>
-    </Row>
+      <Row className="mb-3">
+        <Col>
+          <Card className="text-center shadow-sm border-warning">
+            <Card.Body className="py-2">
+              <h6 className="fw-bold text-warning mb-0">📣 알림</h6>
+              <p className="mb-0" style={{ color: 'red', fontSize: '0.9rem' }}>⚠️ 급수 시스템에 문제가 발생했습니다!</p>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-      <h2 className="text-center fw-bold text-success mb-4">내 스마트팜 상태 보기</h2>
+      <h2 className="text-center fw-bold text-success mb-3" style={{ fontSize: '1.5rem' }}>내 스마트팜 상태</h2>
         
-      <Nav
-        variant="tabs"
-        activeKey={selectedFarmId}
-        onSelect={(selectedKey) => setSelectedFarmId(selectedKey)}
-        style={{ display: 'flex' }}
-      >
-        {farms.map((farm) => (
-          <Nav.Item key={farm.farmId}>
-            <Nav.Link
-              eventKey={farm.farmId}
-              style={{
-                color: 'black',
-                fontWeight: 'normal',
-              }}
-            >
-              {farm.farmName}
-            </Nav.Link>
-          </Nav.Item>
-        ))}
-      </Nav>
+      {/* 농장 선택 탭 - 모바일에서 스크롤 가능하도록 수정 */}
+      <div className="mb-3" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <Nav
+          variant="tabs"
+          activeKey={selectedFarmId}
+          onSelect={(selectedKey) => setSelectedFarmId(selectedKey)}
+          className="flex-nowrap"
+          style={{ minWidth: 'max-content' }}
+        >
+          {farms.map((farm) => (
+            <Nav.Item key={farm.farmId}>
+              <Nav.Link
+                eventKey={farm.farmId}
+                className="px-3 py-2"
+                style={{
+                  color: 'black',
+                  fontWeight: 'normal',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {farm.farmName}
+              </Nav.Link>
+            </Nav.Item>
+          ))}
+        </Nav>
+      </div>
   
       {/* 작물 정보 섹션 */}
-      <Row className="mb-4">
+      <Row className="mb-3">
         <Col>
           <Card className="text-center shadow-sm">
-            <Card.Body>
-              <h5 className="fw-bold text-primary">키우는 작물 정보</h5>
+            <Card.Body className="py-3">
+              <h6 className="fw-bold text-primary mb-2">키우는 작물 정보</h6>
               {data && data.crop ? (
-                <>
-                  <p>품종: <strong>{data.crop}</strong></p>
+                <div className="d-flex flex-column gap-1">
+                  <p className="mb-1">품종: <strong>{data.crop}</strong></p>
                   {data.plantedAt && (
-                    <p>
+                    <p className="mb-0">
                       심은 날짜:{" "}
                       <strong>
                         {new Date(data.plantedAt).toLocaleDateString("ko-KR", {
@@ -318,9 +324,9 @@ function UserDashboard() {
                       </strong>
                     </p>
                   )}
-                </>
+                </div>
               ) : (
-                <p style={{ color: "#5a9a5a" }}>아직 키우는 식물이 없습니다 🌱</p>
+                <p className="mb-0" style={{ color: "#5a9a5a", fontSize: '0.9rem' }}>아직 키우는 식물이 없습니다 🌱</p>
               )}
             </Card.Body>
           </Card>
@@ -328,133 +334,129 @@ function UserDashboard() {
       </Row>
   
       {/* 현재 센서 값 */}
-      <Row className="g-4 mb-4">
-        <Col>
-          <Card className="text-center shadow-sm">
-            <Card.Body>
-              <h5 className="fw-bold text-primary">현재 센서 값</h5>
-              {data && data.crop ? (
-                data.sensorLogs?.length > 0 ? (
-                  <Row>
-                    {getSensorTypes().map(type => {
-                      const config = getSensorConfig(type);
-                      const latest = data.sensorLogs[data.sensorLogs.length - 1] || {};
-                      return (
-                        <Col md={4} key={type}>
-                          <h6 className="text-primary">{config.icon} 현재 {config.label}</h6>
-                          {hasSensorData(type) ? (
-                            <h2 className={config.color.text}>{latest[type]} {config.unit}</h2>
-                          ) : (
-                            <p className="text-muted">데이터 없음</p>
-                          )}
-                        </Col>
-                      );
-                    })}
-                  </Row>
-                ) : (
-                  <p style={{ color: "#5a9a5a" }}>아직 센서 데이터가 없습니다 📊</p>
-                )
-              ) : (
-                <p style={{ color: "#5a9a5a" }}>작물을 먼저 추가해주세요 🌱</p>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
+      <Row className="g-2 mb-3">
+        {getSensorTypes().map(type => {
+          const config = getSensorConfig(type);
+          const latest = data?.sensorLogs?.[data.sensorLogs.length - 1] || {};
+          return (
+            <Col xs={6} sm={4} key={type}>
+              <Card className="text-center shadow-sm h-100">
+                <Card.Body className="py-2">
+                  <h6 className="text-primary mb-1" style={{ fontSize: '0.9rem' }}>
+                    {config.icon} 현재 {config.label}
+                  </h6>
+                  {hasSensorData(type) ? (
+                    <h3 className={config.color.text + " mb-0"} style={{ fontSize: '1.5rem' }}>
+                      {latest[type]} {config.unit}
+                    </h3>
+                  ) : (
+                    <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>데이터 없음</p>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
+          );
+        })}
       </Row>
   
       {/* 하루 평균 그래프 */}
-      <Row className="mb-4">
-        <Col>
-          <Card className="shadow-sm">
-            <Card.Body>
-              <h5 className="fw-bold text-primary">환경 변화 그래프</h5>
-              {data && data.crop ? (
-                data.dailySensorLogs?.length > 0 ? (
-                  <Row>
-                    {getSensorTypes().map(type => {
-                      const config = getSensorConfig(type);
-                      const sensorData = data.dailySensorLogs.map(item => {
-                        const value = item[type];
-                        return value !== null && value !== undefined && !isNaN(value) ? Number(value) : 0;
-                      });
-                      const validData = sensorData.filter(value => value !== 0);
-                      const minValue = Math.min(...validData);
-                      const maxValue = Math.max(...validData);
-                      const padding = (maxValue - minValue) * 0.1;
-                      
-                      return (
-                        <Col md={4} key={type}>
-                          <h6 className={config.color.text}>{config.icon} {config.label} 변화 (최근 24시간)</h6>
-                          {hasSensorData(type) ? (
-                            <Line 
-                              data={createChartData(type)} 
-                              height={150}
-                              options={{
-                                scales: {
-                                  y: {
-                                    suggestedMin: Math.max(0, minValue - padding),
-                                    suggestedMax: maxValue + padding,
-                                    ticks: {
-                                      precision: 0,
-                                      stepSize: 1
-                                    }
-                                  }
-                                },
-                                plugins: {
-                                  legend: {
-                                    display: true
-                                  }
+      <Row className="mb-3">
+        {getSensorTypes().map(type => {
+          const config = getSensorConfig(type);
+          return (
+            <Col xs={12} key={type} className="mb-3">
+              <Card className="shadow-sm">
+                <Card.Body className="py-3">
+                  <h6 className={config.color.text + " mb-2"} style={{ fontSize: '0.9rem' }}>
+                    {config.icon} {config.label} 변화 (최근 24시간)
+                  </h6>
+                  {hasSensorData(type) ? (
+                    <div style={{ height: '200px' }}>
+                      <Line 
+                        data={createChartData(type)} 
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          scales: {
+                            x: {
+                              ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                  size: 10
                                 }
-                              }}
-                            />
-                          ) : (
-                            <div style={{ height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <p className="text-muted">데이터 없음</p>
-                            </div>
-                          )}
-                        </Col>
-                      );
-                    })}
-                  </Row>
-                ) : (
-                  <p style={{ color: "#5a9a5a" }}>아직 그래프 데이터가 없습니다 📊</p>
-                )
-              ) : (
-                <p style={{ color: "#5a9a5a" }}>작물을 먼저 추가해주세요 🌱</p>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
+                              }
+                            },
+                            y: {
+                              ticks: {
+                                font: {
+                                  size: 10
+                                }
+                              }
+                            }
+                          },
+                          plugins: {
+                            legend: {
+                              display: true,
+                              labels: {
+                                font: {
+                                  size: 11
+                                }
+                              }
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>데이터 없음</p>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
+          );
+        })}
       </Row>
   
       {/* 센서 목록 */}
-      <Row className="mb-4">
+      <Row className="mb-3">
         <Col>
-          <Card className="text-center shadow-sm">
-            <Card.Body>
-              <h5 className="text-dark fw-bold">🌡️ 센서 목록</h5>
+          <Card className="shadow-sm">
+            <Card.Body className="py-3">
+              <h6 className="text-dark fw-bold mb-2">🌡️ 센서 목록</h6>
               {data && data.crop ? (
                 Array.isArray(data.sensors) && data.sensors.length > 0 ? (
-                  data.sensors.map((sensor) => {
-                    const config = getSensorConfig(sensor.type);
-                    return (
-                      <p key={sensor.id}>
-                        {config.icon}{" "}
-                        <span style={{ fontWeight: 500 }}>{sensor.name}</span>
-                        {" "}
-                        <span style={{ color: "#666" }}>({sensor.type})</span>
-                        {" "}
-                        <strong style={{ color: sensor.active ? 'green' : 'red' }}>
-                          {sensor.active ? "작동중" : "정지됨"}
-                        </strong>
-                      </p>
-                    );
-                  })
+                  <div className="d-flex flex-column gap-2">
+                    {data.sensors.map((sensor) => {
+                      const config = getSensorConfig(sensor.type);
+                      return (
+                        <div key={sensor.id} className="d-flex align-items-center justify-content-between border-bottom pb-2">
+                          <div>
+                            <span className="me-2">{config.icon}</span>
+                            <span style={{ fontWeight: 500 }}>{sensor.name}</span>
+                            <span className="text-muted ms-1" style={{ fontSize: '0.8rem' }}>({sensor.type})</span>
+                          </div>
+                          <span 
+                            className="badge" 
+                            style={{ 
+                              backgroundColor: sensor.active ? '#28a745' : '#dc3545',
+                              color: 'white',
+                              fontSize: '0.8rem'
+                            }}
+                          >
+                            {sensor.active ? "작동중" : "정지됨"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
-                  <p style={{ color: "#5a9a5a" }}>등록된 센서가 없습니다 📟</p>
+                  <p className="mb-0" style={{ color: "#5a9a5a", fontSize: '0.9rem' }}>등록된 센서가 없습니다 📟</p>
                 )
               ) : (
-                <p style={{ color: "#5a9a5a" }}>작물을 먼저 추가해주세요 🌱</p>
+                <p className="mb-0" style={{ color: "#5a9a5a", fontSize: '0.9rem' }}>작물을 먼저 추가해주세요 🌱</p>
               )}
             </Card.Body>
           </Card>
@@ -462,34 +464,44 @@ function UserDashboard() {
       </Row>
   
       {/* 제어 장치 */}
-      <Row className="mb-4">
+      <Row className="mb-3">
         <Col>
-          <Card className="text-center shadow-sm">
-            <Card.Body>
-              <h5 className="text-dark fw-bold">⚙️ 제어 장치 상태</h5>
+          <Card className="shadow-sm">
+            <Card.Body className="py-3">
+              <h6 className="text-dark fw-bold mb-2">⚙️ 제어 장치 상태</h6>
               {data && data.crop ? (
                 Array.isArray(data.actuators) && data.actuators.length > 0 ? (
-                  data.actuators.map((device) => (
-                    <p key={device.id}>
-                      {device.type === "LED" && <FaLightbulb className="text-warning" />}
-                      {device.type === "급수" && <FaShower className="text-info" />}
-                      {device.type === "팬" && <FaFan className="text-primary" />}
-                      {!["LED", "급수", "팬"].includes(device.type) && "⚙️"}
-                      {" "}
-                      <span style={{ fontWeight: 500 }}>{device.name}</span>
-                      {" "}
-                      <span style={{ color: "#666" }}>({device.type})</span>
-                      {" "}
-                      <strong style={{ color: device.active ? "green" : "red" }}>
-                        {device.active ? "작동중" : "정지됨"}
-                      </strong>
-                    </p>
-                  ))
+                  <div className="d-flex flex-column gap-2">
+                    {data.actuators.map((device) => (
+                      <div key={device.id} className="d-flex align-items-center justify-content-between border-bottom pb-2">
+                        <div>
+                          <span className="me-2">
+                            {device.type === "LED" && <FaLightbulb className="text-warning" />}
+                            {device.type === "급수" && <FaShower className="text-info" />}
+                            {device.type === "팬" && <FaFan className="text-primary" />}
+                            {!["LED", "급수", "팬"].includes(device.type) && "⚙️"}
+                          </span>
+                          <span style={{ fontWeight: 500 }}>{device.name}</span>
+                          <span className="text-muted ms-1" style={{ fontSize: '0.8rem' }}>({device.type})</span>
+                        </div>
+                        <span 
+                          className="badge" 
+                          style={{ 
+                            backgroundColor: device.active ? '#28a745' : '#dc3545',
+                            color: 'white',
+                            fontSize: '0.8rem'
+                          }}
+                        >
+                          {device.active ? "작동중" : "정지됨"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <p style={{ color: "#5a9a5a" }}>등록된 제어 장치가 없습니다 ⚙️</p>
+                  <p className="mb-0" style={{ color: "#5a9a5a", fontSize: '0.9rem' }}>등록된 제어 장치가 없습니다 ⚙️</p>
                 )
               ) : (
-                <p style={{ color: "#5a9a5a" }}>작물을 먼저 추가해주세요 🌱</p>
+                <p className="mb-0" style={{ color: "#5a9a5a", fontSize: '0.9rem' }}>작물을 먼저 추가해주세요 🌱</p>
               )}
             </Card.Body>
           </Card>

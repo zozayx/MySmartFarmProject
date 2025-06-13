@@ -148,14 +148,14 @@ router.get('/user/dashboard/:farmId', async (req, res) => {
 
       const hourlyAveragesQuery = `
         SELECT 
-          time_bucket('1 hour', sl.time) as hour,
+          date_trunc('hour', sl.time) as hour,
           ${avgCaseStatements}
         FROM sensor_logs sl
         JOIN sensors s ON sl.sensor_id = s.sensor_id
         JOIN esps e ON s.esp_id = e.esp_id
         WHERE e.farm_id = $1
           AND sl.time > NOW() - INTERVAL '24 hours'
-        GROUP BY hour
+        GROUP BY date_trunc('hour', sl.time)
         ORDER BY hour
       `;
       const hourlyAverages = await pool.query(hourlyAveragesQuery, [farmId]);

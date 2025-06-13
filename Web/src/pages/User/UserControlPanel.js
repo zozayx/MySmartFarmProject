@@ -272,9 +272,9 @@ function UserControlPanel() {
   ];
 
   const actuatorTypes = [
-    { value: 'fan', label: '🌬️ 환기팬' },
-    { value: 'led', label: '💡 조명' },
-    { value: 'watering', label: '💧 급수' }
+    { value: 'fan', label: '🌬️ 환기팬 작동' },
+    { value: 'led', label: '💡 조명 작동' },
+    { value: 'watering', label: '💧 급수 작동' }
   ];
 
   // 센서와 제어 장치의 적절한 조건 매핑
@@ -313,27 +313,27 @@ function UserControlPanel() {
   };
 
   return (
-  <Container className="py-5">
-    <h2 className="mb-4 text-center fw-bold" style={{ color: '#2c3e50' }}>
+  <Container fluid className="py-3 px-2">
+    <h2 className="mb-3 text-center fw-bold fs-4" style={{ color: '#2c3e50' }}>
       <span className="me-2">🤖</span>자동 제어 패널
     </h2>
 
     {errorMessage && (
-      <Alert variant="danger" className="text-center shadow-sm">
-        {errorMessage}
+      <Alert variant="danger" className="text-center shadow-sm mb-3 py-2">
+        <small>{errorMessage}</small>
       </Alert>
     )}
 
-    <Card className="p-4 shadow-sm mb-5 border-0" style={{ borderRadius: '15px', backgroundColor: '#f8f9fa' }}>
-      <h3 className="mb-4 fw-bold" style={{ color: '#2c3e50' }}>
+    <Card className="p-3 shadow-sm mb-4 border-0" style={{ borderRadius: '12px', backgroundColor: '#f8f9fa' }}>
+      <h3 className="mb-3 fw-bold fs-5" style={{ color: '#2c3e50' }}>
         <span className="me-2">🔄</span>자동화 설정
       </h3>
       
       {/* 농장 선택 및 정보 섹션 */}
-      <Row className="mb-4">
-        <Col md={6}>
+      <Row className="g-3 mb-3">
+        <Col xs={12}>
           <Form.Group>
-            <Form.Label className="h5 fw-bold" style={{ color: '#2c3e50' }}>
+            <Form.Label className="fw-bold fs-6" style={{ color: '#2c3e50' }}>
               <span className="me-2">📌</span>농장 선택
             </Form.Label>
             <Form.Select
@@ -344,7 +344,7 @@ function UserControlPanel() {
                 setNewRule(prev => ({...prev, farmName: e.target.value}));
               }}
               className="shadow-sm border-0"
-              style={{ borderRadius: '10px' }}
+              style={{ borderRadius: '8px', fontSize: '0.9rem' }}
             >
               {Array.isArray(farmNames) && farmNames.length > 0 ? (
                 farmNames.map((type) => (
@@ -358,23 +358,21 @@ function UserControlPanel() {
             </Form.Select>
           </Form.Group>
         </Col>
-        <Col md={6}>
+        <Col xs={12}>
           {selectedFarm && (
-            <Card className="h-100 border-0 shadow-sm" style={{ borderRadius: '15px', backgroundColor: '#fff' }}>
-              <Card.Body className="d-flex align-items-center">
-                <div>
-                  <h5 className="mb-0 fw-bold" style={{ color: '#2c3e50' }}>
-                    <span className="me-2">🌱</span>현재 작물
-                  </h5>
-                  <p className="mt-2 mb-0 fs-4" style={{ color: '#27ae60' }}>
-                    {farmNames.find(f => f.farmName === selectedFarm)?.plantName || '정보 없음'}
-                  </p>
-                  <p className="mt-2 mb-0 small text-muted" style={{ fontSize: '0.85rem' }}>
-                    {farmNames.find(f => f.farmName === selectedFarm)?.plantName ? 
-                      `${farmNames.find(f => f.farmName === selectedFarm)?.plantName}에 추천되는 최적 값은 온도 ${farmNames.find(f => f.farmName === selectedFarm)?.temperature}°C, 습도 ${farmNames.find(f => f.farmName === selectedFarm)?.humidity}%, 토양 수분 ${farmNames.find(f => f.farmName === selectedFarm)?.soilMoisture}% 입니다!` 
-                      : ''}
-                  </p>
-                </div>
+            <Card className="border-0 shadow-sm" style={{ borderRadius: '12px', backgroundColor: '#fff' }}>
+              <Card.Body className="p-3">
+                <h5 className="mb-2 fw-bold fs-6" style={{ color: '#2c3e50' }}>
+                  <span className="me-2">🌱</span>현재 작물
+                </h5>
+                <p className="mb-2 fs-5" style={{ color: '#27ae60' }}>
+                  {farmNames.find(f => f.farmName === selectedFarm)?.plantName || '정보 없음'}
+                </p>
+                <p className="mb-0 small text-muted" style={{ fontSize: '0.8rem' }}>
+                  {farmNames.find(f => f.farmName === selectedFarm)?.plantName ? 
+                    `${farmNames.find(f => f.farmName === selectedFarm)?.plantName}에 추천되는 최적 값은 온도 ${farmNames.find(f => f.farmName === selectedFarm)?.temperature}°C, 습도 ${farmNames.find(f => f.farmName === selectedFarm)?.humidity}%, 토양 수분 ${farmNames.find(f => f.farmName === selectedFarm)?.soilMoisture}% 입니다!` 
+                    : ''}
+                </p>
               </Card.Body>
             </Card>
           )}
@@ -382,17 +380,17 @@ function UserControlPanel() {
       </Row>
 
       {/* 자동화 규칙 설정 섹션 */}
-      <Card className="mt-4 border-0 shadow-sm" style={{ borderRadius: '15px', backgroundColor: '#fff' }}>
-        <Card.Body>
-          <Row className="g-3">
-            <Col md={6}>
+      <Card className="border-0 shadow-sm" style={{ borderRadius: '12px', backgroundColor: '#fff' }}>
+        <Card.Body className="p-3">
+          <Row className="g-2">
+            <Col xs={12}>
               <Form.Group>
-                <Form.Label className="fw-bold" style={{ color: '#2c3e50' }}>센서 선택</Form.Label>
+                <Form.Label className="fw-bold fs-6" style={{ color: '#2c3e50' }}>센서 선택</Form.Label>
                 <Form.Select
                   value={newRule.sensorType}
                   onChange={(e) => handleSensorChange(e.target.value)}
                   className="shadow-sm border-0"
-                  style={{ borderRadius: '10px' }}
+                  style={{ borderRadius: '8px', fontSize: '0.9rem' }}
                 >
                   {sensorTypes.map(type => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -401,14 +399,14 @@ function UserControlPanel() {
               </Form.Group>
             </Col>
             
-            <Col md={6}>
+            <Col xs={12}>
               <Form.Group>
-                <Form.Label className="fw-bold" style={{ color: '#2c3e50' }}>제어 장치 선택</Form.Label>
+                <Form.Label className="fw-bold fs-6" style={{ color: '#2c3e50' }}>제어 장치 선택</Form.Label>
                 <Form.Select
                   value={newRule.actuatorType}
                   onChange={(e) => setNewRule({...newRule, actuatorType: e.target.value})}
                   className="shadow-sm border-0"
-                  style={{ borderRadius: '10px' }}
+                  style={{ borderRadius: '8px', fontSize: '0.9rem' }}
                 >
                   {actuatorTypes.map(type => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -417,14 +415,14 @@ function UserControlPanel() {
               </Form.Group>
             </Col>
 
-            <Col md={6}>
+            <Col xs={6}>
               <Form.Group>
-                <Form.Label className="fw-bold" style={{ color: '#2c3e50' }}>조건</Form.Label>
+                <Form.Label className="fw-bold fs-6" style={{ color: '#2c3e50' }}>조건</Form.Label>
                 <Form.Select
                   value={newRule.trigger}
                   onChange={(e) => setNewRule({...newRule, trigger: e.target.value})}
                   className="shadow-sm border-0"
-                  style={{ borderRadius: '10px' }}
+                  style={{ borderRadius: '8px', fontSize: '0.9rem' }}
                 >
                   <option value="above">이상</option>
                   <option value="below">이하</option>
@@ -432,9 +430,9 @@ function UserControlPanel() {
               </Form.Group>
             </Col>
             
-            <Col md={6}>
+            <Col xs={6}>
               <Form.Group>
-                <Form.Label className="fw-bold" style={{ color: '#2c3e50' }}>
+                <Form.Label className="fw-bold fs-6" style={{ color: '#2c3e50' }}>
                   기준값 ({sensorTypes.find(s => s.value === newRule.sensorType)?.unit || ''})
                 </Form.Label>
                 <Form.Control
@@ -443,23 +441,24 @@ function UserControlPanel() {
                   onChange={(e) => setNewRule({...newRule, threshold: e.target.value})}
                   placeholder="값 입력"
                   className="shadow-sm border-0"
-                  style={{ borderRadius: '10px' }}
+                  style={{ borderRadius: '8px', fontSize: '0.9rem' }}
                 />
               </Form.Group>
             </Col>
           </Row>
           
-          <div className="text-center mt-4">
+          <div className="text-center mt-3">
             <Button 
               variant="primary" 
               size="lg"
               onClick={handleAddRule}
               disabled={!selectedFarm}
-              className="px-5 py-2 fw-bold shadow-sm"
+              className="px-4 py-2 fw-bold shadow-sm w-100"
               style={{ 
-                borderRadius: '10px',
+                borderRadius: '8px',
                 backgroundColor: '#3498db',
-                border: 'none'
+                border: 'none',
+                fontSize: '0.9rem'
               }}
             >
               설정 추가
@@ -469,60 +468,65 @@ function UserControlPanel() {
       </Card>
       
       {/* 현재 설정된 규칙 목록 */}
-      <div className="mt-5">
-        <h4 className="fw-bold mb-4" style={{ color: '#2c3e50' }}>
+      <div className="mt-4">
+        <h4 className="fw-bold mb-3 fs-5" style={{ color: '#2c3e50' }}>
           <span className="me-2">📋</span>현재 설정된 규칙
         </h4>
         {automationRules.length === 0 ? (
-          <Alert variant="info" className="shadow-sm border-0" style={{ borderRadius: '10px' }}>
+          <Alert variant="info" className="shadow-sm border-0 py-2" style={{ borderRadius: '8px', fontSize: '0.9rem' }}>
             설정된 자동화 규칙이 없습니다.
           </Alert>
         ) : (
           <div className="table-responsive">
-            <Table className="shadow-sm border-0" style={{ borderRadius: '10px', overflow: 'hidden' }}>
+            <Table className="shadow-sm border-0" style={{ borderRadius: '8px', overflow: 'hidden', fontSize: '0.9rem' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f8f9fa' }}>
-                  <th className="py-3 px-4" style={{ borderTopLeftRadius: '10px' }}>농장</th>
-                  <th className="py-3 px-4">센서</th>
-                  <th className="py-3 px-4">조건</th>
-                  <th className="py-3 px-4">기준값</th>
-                  <th className="py-3 px-4">제어 장치</th>
-                  <th className="py-3 px-4" style={{ borderTopRightRadius: '10px' }}>관리</th>
+                  <th className="py-2 px-2" style={{ borderTopLeftRadius: '8px' }}>농장</th>
+                  <th className="py-2 px-2">센서</th>
+                  <th className="py-2 px-2">조건</th>
+                  <th className="py-2 px-2">기준값</th>
+                  <th className="py-2 px-2">제어</th>
+                  <th className="py-2 px-2" style={{ borderTopRightRadius: '8px' }}>관리</th>
                 </tr>
               </thead>
               <tbody>
                 {automationRules.map((rule) => (
                   <tr key={rule.id} style={{ backgroundColor: '#fff' }}>
-                    <td className="py-3 px-4 align-middle">
-                      <span className="fw-bold" style={{ color: '#2c3e50' }}>{rule.farmName}</span>
+                    <td className="py-2 px-2 align-middle">
+                      <span className="fw-bold" style={{ color: '#2c3e50', fontSize: '0.85rem' }}>{rule.farmName}</span>
                     </td>
-                    <td className="py-3 px-4 align-middle">
-                      {sensorTypes.find(s => s.value === rule.sensorType)?.label}
+                    <td className="py-2 px-2 align-middle">
+                      <span style={{ fontSize: '0.85rem' }}>
+                        {sensorTypes.find(s => s.value === rule.sensorType)?.label}
+                      </span>
                     </td>
-                    <td className="py-3 px-4 align-middle">
-                      <span className={`badge ${rule.trigger === 'above' ? 'bg-danger' : 'bg-primary'}`}>
+                    <td className="py-2 px-2 align-middle">
+                      <span className={`badge ${rule.trigger === 'above' ? 'bg-danger' : 'bg-primary'}`} style={{ fontSize: '0.75rem' }}>
                         {rule.trigger === 'above' ? '이상' : '이하'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 align-middle">
-                      <span className="fw-bold" style={{ color: '#2c3e50' }}>
+                    <td className="py-2 px-2 align-middle">
+                      <span className="fw-bold" style={{ color: '#2c3e50', fontSize: '0.85rem' }}>
                         {rule.threshold}
                         {sensorTypes.find(s => s.value === rule.sensorType)?.unit}
                       </span>
                     </td>
-                    <td className="py-3 px-4 align-middle">
-                      {actuatorTypes.find(a => a.value === rule.actuatorType)?.label}
+                    <td className="py-2 px-2 align-middle">
+                      <span style={{ fontSize: '0.85rem' }}>
+                        {actuatorTypes.find(a => a.value === rule.actuatorType)?.label}
+                      </span>
                     </td>
-                    <td className="py-3 px-4 align-middle">
+                    <td className="py-2 px-2 align-middle">
                       <Button
                         variant="outline-danger"
                         size="sm"
                         onClick={() => handleDeleteRule(rule.id)}
                         className="shadow-sm"
                         style={{ 
-                          borderRadius: '8px',
+                          borderRadius: '6px',
                           borderWidth: '1px',
-                          padding: '0.375rem 1rem'
+                          padding: '0.25rem 0.5rem',
+                          fontSize: '0.75rem'
                         }}
                       >
                         삭제
@@ -538,72 +542,74 @@ function UserControlPanel() {
     </Card>
 
     {/* ⚙️ 수동 제어 패널 영역 */}
-    <h2 className="mb-4 text-center">⚙️ 수동 제어 패널</h2>
-    <Row className="g-4">
+    <h2 className="mb-3 text-center fs-4">⚙️ 수동 제어 패널</h2>
+    <Row className="g-3">
       {/* 💡 조명 */}
-      <Col xs={12} md={4}>
-        <Card className="shadow-sm text-center">
-          <Card.Body>
-            <h5 className="fw-bold text-primary">조명 제어</h5>
-            <div className="display-5 my-2">
+      <Col xs={12} sm={4}>
+        <Card className="shadow-sm text-center h-100">
+          <Card.Body className="p-3">
+            <h5 className="fw-bold text-primary fs-6 mb-2">조명 제어</h5>
+            <div className="display-6 my-2">
               {ledStatus === "ON" ? (
                 <FaLightbulb className="text-warning" />
               ) : (
                 <FaRegLightbulb style={{ color: "gray" }} />
               )}
             </div>
-            <p className="text-muted">
+            <p className="text-muted mb-2" style={{ fontSize: '0.9rem' }}>
               현재 상태: {ledStatus === "ON" ? "켜짐" : "꺼짐"}
             </p>
             <Button
               variant={ledStatus === "ON" ? "danger" : "success"}
-              className="fw-bold w-100"
+              className="fw-bold w-100 py-2"
               onClick={toggleLight}
+              style={{ fontSize: '0.9rem' }}
             >
               {ledStatus === "ON" ? "전구 끄기" : "전구 켜기"}
             </Button>
             {lightErrorMessage && (
-              <p className="mt-3 text-danger small">{lightErrorMessage}</p>
+              <p className="mt-2 text-danger small" style={{ fontSize: '0.8rem' }}>{lightErrorMessage}</p>
             )}
           </Card.Body>
         </Card>
       </Col>
 
       {/* 💧 급수 */}
-      <Col xs={12} md={4}>
-        <Card className="shadow-sm text-center">
-          <Card.Body>
-            <h5 className="fw-bold text-primary">급수 제어</h5>
-            <div className="display-5 my-2">
+      <Col xs={12} sm={4}>
+        <Card className="shadow-sm text-center h-100">
+          <Card.Body className="p-3">
+            <h5 className="fw-bold text-primary fs-6 mb-2">급수 제어</h5>
+            <div className="display-6 my-2">
               {waterStatus === "ON" ? (
                 <FaShower className="text-info" />
               ) : (
                 <FaSeedling style={{ color: "green" }} />
               )}
             </div>
-            <p className="text-muted">
+            <p className="text-muted mb-2" style={{ fontSize: '0.9rem' }}>
               현재 상태: {waterStatus === "ON" ? "작동 중" : "대기 중"}
             </p>
             <Button
               variant={waterStatus === "ON" ? "danger" : "success"}
-              className="fw-bold w-100"
+              className="fw-bold w-100 py-2"
               onClick={toggleWatering}
+              style={{ fontSize: '0.9rem' }}
             >
               {waterStatus === "ON" ? "급수 중지" : "급수 시작"}
             </Button>
             {waterErrorMessage && (
-              <p className="mt-3 text-danger small">{waterErrorMessage}</p>
+              <p className="mt-2 text-danger small" style={{ fontSize: '0.8rem' }}>{waterErrorMessage}</p>
             )}
           </Card.Body>
         </Card>
       </Col>
 
       {/* 🌬️ 팬 */}
-      <Col xs={12} md={4}>
-        <Card className="shadow-sm text-center">
-          <Card.Body>
-            <h5 className="fw-bold text-primary">환기팬 제어</h5>
-            <div className="display-5 my-2">
+      <Col xs={12} sm={4}>
+        <Card className="shadow-sm text-center h-100">
+          <Card.Body className="p-3">
+            <h5 className="fw-bold text-primary fs-6 mb-2">환기팬 제어</h5>
+            <div className="display-6 my-2">
               <FaFan
                 style={{
                   color: fanStatus === "ON" ? "#0d6efd" : "gray",
@@ -611,18 +617,19 @@ function UserControlPanel() {
                 }}
               />
             </div>
-            <p className="text-muted">
+            <p className="text-muted mb-2" style={{ fontSize: '0.9rem' }}>
               현재 상태: {fanStatus === "ON" ? "켜짐" : "꺼짐"}
             </p>
             <Button
               variant={fanStatus === "ON" ? "danger" : "success"}
-              className="fw-bold w-100"
+              className="fw-bold w-100 py-2"
               onClick={toggleFan}
+              style={{ fontSize: '0.9rem' }}
             >
               {fanStatus === "ON" ? "팬 끄기" : "팬 켜기"}
             </Button>
             {fanErrorMessage && (
-              <p className="mt-3 text-danger small">{fanErrorMessage}</p>
+              <p className="mt-2 text-danger small" style={{ fontSize: '0.8rem' }}>{fanErrorMessage}</p>
             )}
           </Card.Body>
         </Card>

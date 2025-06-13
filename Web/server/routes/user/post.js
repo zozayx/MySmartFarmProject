@@ -227,4 +227,32 @@ const upload = multer({
     }
   });
 
+  // 품종 목록 가져오기 API
+  router.get('/user/plant-types', async (req, res) => {
+    const userId = req.user.userId;
+    
+    try {
+      // 사용자가 등록한 농장의 품종 목록을 중복 없이 가져오기
+      const result = await pool.query(`
+        SELECT DISTINCT plant_name
+        FROM farms
+        WHERE user_id = $1 AND plant_name IS NOT NULL
+        ORDER BY plant_name ASC
+      `, [userId]);
+
+      // 품종 목록 반환
+      const plantTypes = result.rows.map(row => ({
+        plantName: row.plant_name
+      }));
+
+      res.json({ success: true, plantTypes });
+    } catch (err) {
+      console.error("품종 목록 조회 실패:", err);
+      res.status(500).json({ 
+        success: false, 
+        message: "서버 오류로 품종 목록을 불러오지 못했습니다." 
+      });
+    }
+  });
+
   module.exports = router;

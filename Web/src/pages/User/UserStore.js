@@ -164,126 +164,177 @@ const UserStore = () => {
   });
 
   return (
-    <Container className="mt-4 mb-5">
-      <h1 className="mb-4">스마트팜 상점</h1>
-      <Row>
+    <Container fluid className="px-2 py-3">
+      <h1 className="mb-3 fs-4 text-center">ACG 스마트팜 상점</h1>
+      <Row className="g-3">
         {/* 왼쪽 사이드바 */}
         <Col
+          xs={12}
           md={3}
-          className="border-end"
+          className="border-end pe-0 pe-md-3"
           style={{
-            minHeight: window.innerWidth >= 768 ? '80vh' : 'auto',  // 화면 너비가 md(768px) 이상일 때만 높이 고정
+            minHeight: 'auto',
+            borderRight: window.innerWidth >= 768 ? '1px solid #dee2e6' : 'none',
+            borderBottom: window.innerWidth < 768 ? '1px solid #dee2e6' : 'none',
+            paddingBottom: window.innerWidth < 768 ? '1rem' : '0'
           }}
         >
           {/* 검색창 */}
           <Form.Control
             type="search"
             placeholder="상품명 또는 세부 분류 검색"
-            className="mb-3"
+            className="mb-3 shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ fontSize: '0.9rem' }}
           />
 
           {/* 카테고리 */}
-          <ListGroup>
+          <div className="d-flex overflow-auto mb-2" style={{ 
+            WebkitOverflowScrolling: 'touch',
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'none'
+          }}>
             {categories.map(cat => (
-              <ListGroup.Item
+              <Button
                 key={cat.value}
-                style={activeStyle(selectedCategory === cat.value)}
+                variant={selectedCategory === cat.value ? 'success' : 'outline-secondary'}
+                size="sm"
+                className="me-2 flex-shrink-0"
                 onClick={() => handleCategoryClick(cat.value)}
+                style={{ 
+                  fontSize: '0.85rem',
+                  whiteSpace: 'nowrap',
+                  borderRadius: '20px'
+                }}
               >
                 {cat.label}
-              </ListGroup.Item>
+              </Button>
             ))}
-          </ListGroup>
+          </div>
 
           {/* 선택된 카테고리의 서브타입 목록 */}
           {selectedCategory === 'sensor' && (
             <>
-              <hr />
-              <div style={{ fontWeight: '600', marginBottom: 8 }}>센서 종류</div>
-              <ListGroup>
+              <div className="fw-bold mb-2 fs-6">센서 종류</div>
+              <div className="d-flex flex-wrap gap-1 mb-3">
                 {sensorSubtypes.map(sub => (
-                  <ListGroup.Item
+                  <Button
                     key={sub}
-                    style={activeStyle(selectedSubtype === sub)}
+                    variant={selectedSubtype === sub ? 'success' : 'outline-secondary'}
+                    size="sm"
+                    className="flex-shrink-0"
                     onClick={() => handleSubtypeClick(sub)}
+                    style={{ 
+                      fontSize: '0.8rem',
+                      whiteSpace: 'nowrap',
+                      borderRadius: '15px'
+                    }}
                   >
                     {subtypeToKorean(sub)}
-                  </ListGroup.Item>
+                  </Button>
                 ))}
-              </ListGroup>
+              </div>
             </>
           )}
 
           {selectedCategory === 'actuator' && (
             <>
-              <hr />
-              <div style={{ fontWeight: '600', marginBottom: 8 }}>제어 장치 종류</div>
-              <ListGroup>
+              <div className="fw-bold mb-2 fs-6">제어 장치 종류</div>
+              <div className="d-flex flex-wrap gap-1 mb-3">
                 {actuatorSubtypes.map(sub => (
-                  <ListGroup.Item
+                  <Button
                     key={sub}
-                    style={activeStyle(selectedSubtype === sub)}
+                    variant={selectedSubtype === sub ? 'success' : 'outline-secondary'}
+                    size="sm"
+                    className="flex-shrink-0"
                     onClick={() => handleSubtypeClick(sub)}
+                    style={{ 
+                      fontSize: '0.8rem',
+                      whiteSpace: 'nowrap',
+                      borderRadius: '15px'
+                    }}
                   >
                     {subtypeToKorean(sub)}
-                  </ListGroup.Item>
+                  </Button>
                 ))}
-              </ListGroup>
+              </div>
             </>
           )}
         </Col>
 
         {/* 상품 리스트 */}
-        <Col md={9}>
+        <Col xs={12} md={9}>
           {loading ? (
-            <div className="d-flex justify-content-center align-items-center" style={{ height: 200 }}>
-              <Spinner animation="border" />
+            <div className="d-flex justify-content-center align-items-center" style={{ height: 150 }}>
+              <Spinner animation="border" size="sm" />
             </div>
           ) : error ? (
-            <Alert variant="danger">{error}</Alert>
+            <Alert variant="danger" className="py-2" style={{ fontSize: '0.9rem' }}>{error}</Alert>
           ) : (
-            <Row>
+            <Row className="g-3">
               {filteredProducts.length === 0 ? (
                 <Col>
-                  <Alert variant="info">조건에 맞는 상품이 없습니다.</Alert>
+                  <Alert variant="info" className="py-2" style={{ fontSize: '0.9rem' }}>조건에 맞는 상품이 없습니다.</Alert>
                 </Col>
               ) : (
                 filteredProducts.map(product => (
-                  <Col key={product.store_id} md={4} className="mb-4">
-                    <Card onClick={() => handleCardClick(product)} style={{ cursor: 'pointer', height: '100%' }}>
-                        {product.image_url && (
-                            <Card.Img
-                            variant="top"
-                            src={`${BASE_URL}${product.image_url}`}
-                            alt={product.name}
-                            style={{ 
-                                height: 200, 
-                                width: '100%', 
-                                objectFit: 'cover',
-                                objectPosition: 'center'
-                            }}
-                            />
+                  <Col key={product.store_id} xs={6} md={4} lg={3}>
+                    <Card 
+                      onClick={() => handleCardClick(product)} 
+                      className="h-100 shadow-sm"
+                      style={{ 
+                        cursor: 'pointer',
+                        borderRadius: '12px',
+                        border: 'none'
+                      }}
+                    >
+                      {product.image_url && (
+                        <Card.Img
+                          variant="top"
+                          src={`${BASE_URL}${product.image_url}`}
+                          alt={product.name}
+                          style={{ 
+                            height: 150,
+                            objectFit: 'cover',
+                            objectPosition: 'center',
+                            borderTopLeftRadius: '12px',
+                            borderTopRightRadius: '12px'
+                          }}
+                        />
+                      )}
+                      <Card.Body className="p-3">
+                        <Card.Title className="fs-6 mb-1" style={{ 
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          lineHeight: '1.2',
+                          height: '2.4em'
+                        }}>
+                          {product.name}
+                        </Card.Title>
+                        <Card.Text style={{ 
+                          color: '#888', 
+                          fontSize: '0.8rem',
+                          marginBottom: '0.5rem'
+                        }}>
+                          [{typeToKorean(product.type)}] {subtypeToKorean(product.subtype)}
+                          {product.type === 'sensor' && product.unit && (
+                            <span style={{ marginLeft: 4, color: '#4a90e2' }}>({product.unit})</span>
+                          )}
+                        </Card.Text>
+                        {product.size && (
+                          <Card.Text style={{ fontSize: '0.75rem', color: '#555', marginBottom: '0.5rem' }}>
+                            크기: {product.size}
+                          </Card.Text>
                         )}
-                        <Card.Body>
-                            <Card.Title>{product.name}</Card.Title>
-                            <Card.Text style={{ color: '#888', fontSize: '0.95em' }}>
-                            [{typeToKorean(product.type)}] {subtypeToKorean(product.subtype)}
-                            {product.type === 'sensor' && product.unit && (
-                                <span style={{ marginLeft: 6, color: '#4a90e2' }}>({product.unit})</span>
-                            )}
-                            </Card.Text>
-                            {product.size && (
-                            <Card.Text style={{ fontSize: '0.85em', color: '#555' }}>
-                                크기: {product.size}
-                            </Card.Text>
-                            )}
-                            <Card.Text>
-                            <strong>{product.price?.toLocaleString()}원</strong>
-                            </Card.Text>
-                        </Card.Body>
-                        </Card>
+                        <Card.Text className="mb-0">
+                          <strong style={{ fontSize: '0.95rem' }}>{product.price?.toLocaleString()}원</strong>
+                        </Card.Text>
+                      </Card.Body>
+                    </Card>
                   </Col>
                 ))
               )}
@@ -293,56 +344,103 @@ const UserStore = () => {
       </Row>
 
       {/* 상세 모달 */}
-      <Modal show={showModal} onHide={handleClose} centered>
+      <Modal show={showModal} onHide={handleClose} centered size="lg">
         {selectedProduct && (
           <>
-            <Modal.Header closeButton>
-              <Modal.Title>
-                {selectedProduct.name}
-                <div style={{ fontSize: '0.95rem', color: '#888', marginTop: '0.3rem' }}>
+            <Modal.Header closeButton className="border-0 pb-0">
+              <Modal.Title className="w-100">
+                <div className="fs-5 fw-bold mb-1">{selectedProduct.name}</div>
+                <div style={{ fontSize: '0.85rem', color: '#888' }}>
                   [{typeToKorean(selectedProduct.type)}] {subtypeToKorean(selectedProduct.subtype)}
                   {selectedProduct.type === 'sensor' && selectedProduct.unit && (
-                    <span style={{ marginLeft: 6, color: '#4a90e2' }}>({selectedProduct.unit})</span>
+                    <span style={{ marginLeft: 4, color: '#4a90e2' }}>({selectedProduct.unit})</span>
                   )}
                 </div>
               </Modal.Title>
             </Modal.Header>
-            <Modal.Body>
+            <Modal.Body className="pt-3">
               {selectedProduct.image_url && (
                 <img
                   src={`${BASE_URL}${selectedProduct.image_url}`}
                   alt={selectedProduct.name}
                   style={{ 
                     width: '100%', 
-                    height: 300,
-                    objectFit: 'cover',
-                    objectPosition: 'center',
+                    height: 'auto',
+                    maxHeight: '300px',
+                    objectFit: 'contain',
                     marginBottom: '1rem', 
-                    borderRadius: 8 
+                    borderRadius: '12px' 
                   }}
                 />
               )}
-              <p style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.5rem' }}>
-                {selectedProduct.description}
-              </p>
-              <hr />
-              <p><strong>가격:</strong> {selectedProduct.price?.toLocaleString()}원</p>
-              <p><strong>통신 방식:</strong> {selectedProduct.communication}</p>
-              <p><strong>상세 정보:</strong> {selectedProduct.details}</p>
-              {selectedProduct.type === 'sensor' && (
-              <>
-                <p><strong>측정 가능 범위:</strong> {selectedProduct.measurement_range || '정보 없음'}</p>
-                <p><strong>정확도:</strong> {selectedProduct.accuracy || '정보 없음'}</p>
-                <p><strong>단위:</strong> {selectedProduct.unit || '정보 없음'}</p>
-                </>
-              )}
-              <p><strong>재고:</strong> {selectedProduct.stock}개</p>
+              <div className="mb-3">
+                <p style={{ 
+                  fontSize: '0.95rem', 
+                  lineHeight: '1.5',
+                  marginBottom: '0.5rem' 
+                }}>
+                  {selectedProduct.description}
+                </p>
+              </div>
+              <hr className="my-3" />
+              <div className="row g-3">
+                <div className="col-6">
+                  <p className="mb-2" style={{ fontSize: '0.9rem' }}>
+                    <strong>가격:</strong><br />
+                    <span style={{ color: '#2c3e50' }}>{selectedProduct.price?.toLocaleString()}원</span>
+                  </p>
+                </div>
+                <div className="col-6">
+                  <p className="mb-2" style={{ fontSize: '0.9rem' }}>
+                    <strong>통신 방식:</strong><br />
+                    <span style={{ color: '#2c3e50' }}>{selectedProduct.communication}</span>
+                  </p>
+                </div>
+                <div className="col-12">
+                  <p className="mb-2" style={{ fontSize: '0.9rem' }}>
+                    <strong>상세 정보:</strong><br />
+                    <span style={{ color: '#2c3e50' }}>{selectedProduct.details}</span>
+                  </p>
+                </div>
+                {selectedProduct.type === 'sensor' && (
+                  <>
+                    <div className="col-6">
+                      <p className="mb-2" style={{ fontSize: '0.9rem' }}>
+                        <strong>측정 범위:</strong><br />
+                        <span style={{ color: '#2c3e50' }}>{selectedProduct.measurement_range || '정보 없음'}</span>
+                      </p>
+                    </div>
+                    <div className="col-6">
+                      <p className="mb-2" style={{ fontSize: '0.9rem' }}>
+                        <strong>정확도:</strong><br />
+                        <span style={{ color: '#2c3e50' }}>{selectedProduct.accuracy || '정보 없음'}</span>
+                      </p>
+                    </div>
+                    <div className="col-6">
+                      <p className="mb-2" style={{ fontSize: '0.9rem' }}>
+                        <strong>단위:</strong><br />
+                        <span style={{ color: '#2c3e50' }}>{selectedProduct.unit || '정보 없음'}</span>
+                      </p>
+                    </div>
+                  </>
+                )}
+                <div className="col-6">
+                  <p className="mb-2" style={{ fontSize: '0.9rem' }}>
+                    <strong>재고:</strong><br />
+                    <span style={{ color: '#2c3e50' }}>{selectedProduct.stock}개</span>
+                  </p>
+                </div>
+              </div>
             </Modal.Body>
-            <Modal.Footer>
-              <Button variant="success" onClick={() => handleAddToCart(selectedProduct)}>
+            <Modal.Footer className="border-0 pt-0">
+              <Button 
+                variant="success" 
+                onClick={() => handleAddToCart(selectedProduct)}
+                className="w-100 py-2"
+                style={{ fontSize: '0.95rem' }}
+              >
                 장바구니 담기
               </Button>
-              <Button variant="secondary" onClick={handleClose}>닫기</Button>
             </Modal.Footer>
           </>
         )}
