@@ -272,9 +272,9 @@ function UserControlPanel() {
   ];
 
   const actuatorTypes = [
-    { value: 'fan', label: '🌬️ 환기팬 작동' },
-    { value: 'led', label: '💡 조명 작동' },
-    { value: 'watering', label: '💧 급수 작동' }
+    { value: 'fan', label: '🌬️\n환기팬\n작동' },
+    { value: 'led', label: '💡\n조명\n작동' },
+    { value: 'watering', label: '💧\n급수\n작동' }
   ];
 
   // 센서와 제어 장치의 적절한 조건 매핑
@@ -478,25 +478,33 @@ function UserControlPanel() {
           </Alert>
         ) : (
           <div className="table-responsive">
-            <Table className="shadow-sm border-0" style={{ borderRadius: '8px', overflow: 'hidden', fontSize: '0.9rem' }}>
+            <Table className="shadow-sm border-0" style={{ borderRadius: '8px', overflow: 'hidden', fontSize: '0.8rem' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f8f9fa' }}>
-                  <th className="py-2 px-2" style={{ borderTopLeftRadius: '8px' }}>농장</th>
-                  <th className="py-2 px-2">센서</th>
-                  <th className="py-2 px-2">조건</th>
-                  <th className="py-2 px-2">기준값</th>
-                  <th className="py-2 px-2">제어</th>
-                  <th className="py-2 px-2" style={{ borderTopRightRadius: '8px' }}>관리</th>
+                  <th className="py-2 px-2" style={{ borderTopLeftRadius: '8px', fontSize: '0.8rem' }}>농장</th>
+                  <th className="py-2 px-2" style={{ fontSize: '0.8rem' }}>센서</th>
+                  <th className="py-2 px-2" style={{ fontSize: '0.8rem' }}>조건</th>
+                  <th className="py-2 px-2" style={{ fontSize: '0.8rem' }}>기준값</th>
+                  <th className="py-2 px-2" style={{ fontSize: '0.8rem' }}>제어</th>
+                  <th className="py-2 px-2" style={{ borderTopRightRadius: '8px', fontSize: '0.8rem' }}>관리</th>
                 </tr>
               </thead>
               <tbody>
                 {automationRules.map((rule) => (
                   <tr key={rule.id} style={{ backgroundColor: '#fff' }}>
                     <td className="py-2 px-2 align-middle">
-                      <span className="fw-bold" style={{ color: '#2c3e50', fontSize: '0.85rem' }}>{rule.farmName}</span>
+                      <span className="fw-bold" style={{ 
+                        color: '#2c3e50', 
+                        fontSize: '0.8rem', 
+                        whiteSpace: 'pre-line',
+                        display: 'block',
+                        textAlign: 'center'
+                      }}>
+                        {rule.farmName.match(/.{1,3}/g)?.join('\n')}
+                      </span>
                     </td>
-                    <td className="py-2 px-2 align-middle">
-                      <span style={{ fontSize: '0.85rem' }}>
+                    <td className="py-1 px-2 align-middle">
+                      <span style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                         {sensorTypes.find(s => s.value === rule.sensorType)?.label}
                       </span>
                     </td>
@@ -506,13 +514,19 @@ function UserControlPanel() {
                       </span>
                     </td>
                     <td className="py-2 px-2 align-middle">
-                      <span className="fw-bold" style={{ color: '#2c3e50', fontSize: '0.85rem' }}>
+                      <span className="fw-bold" style={{ color: '#2c3e50', fontSize: '0.8rem' }}>
                         {rule.threshold}
                         {sensorTypes.find(s => s.value === rule.sensorType)?.unit}
                       </span>
                     </td>
                     <td className="py-2 px-2 align-middle">
-                      <span style={{ fontSize: '0.85rem' }}>
+                      <span style={{ 
+                        fontSize: '0.8rem', 
+                        whiteSpace: 'pre-line',
+                        display: 'block',
+                        textAlign: 'center',
+                        lineHeight: '1.2'
+                      }}>
                         {actuatorTypes.find(a => a.value === rule.actuatorType)?.label}
                       </span>
                     </td>
@@ -523,9 +537,9 @@ function UserControlPanel() {
                         onClick={() => handleDeleteRule(rule.id)}
                         className="shadow-sm"
                         style={{ 
-                          borderRadius: '6px',
+                          borderRadius: '4px',
                           borderWidth: '1px',
-                          padding: '0.25rem 0.5rem',
+                          padding: '0.2rem 0.4rem',
                           fontSize: '0.75rem'
                         }}
                       >

@@ -40,18 +40,41 @@ router.get('/user/sensor-data', async (req, res) => {
       return res.json([]);
     }
 
-    // 센서 데이터 조회
+    // 실제 센서 데이터와 최적값 데이터를 함께 조회
     const query = `
-      SELECT DATE(sensor_logs.time) as date, sensor_logs.sensor_type, AVG(sensor_logs.sensor_value) as avg_value
-      FROM sensor_logs
-      JOIN sensors ON sensor_logs.sensor_id = sensors.sensor_id
-      JOIN esps ON sensors.esp_id = esps.esp_id 
-      WHERE esps.farm_id = $1
-        AND time >= $2
-        AND time <= $3
-      GROUP BY DATE(time), sensor_logs.sensor_type
-      ORDER BY DATE(time);
+      WITH actual_data AS (
+        SELECT 
+          DATE(sensor_logs.time) as date, 
+          sensor_logs.sensor_type, 
+          AVG(sensor_logs.sensor_value) as avg_value
+        FROM sensor_logs
+        JOIN sensors ON sensor_logs.sensor_id = sensors.sensor_id
+        JOIN esps ON sensors.esp_id = esps.esp_id 
+        WHERE esps.farm_id = $1
+          AND time >= $2
+          AND time <= $3
+        GROUP BY DATE(time), sensor_logs.sensor_type
+      ),
+      optimal_data AS (
+        SELECT 
+          DATE(time) as date,
+          sensor_type,
+          optimal_value
+        FROM optimal_sensor_logs
+        WHERE time >= $2
+          AND time <= $3
+      )
+      SELECT 
+        COALESCE(a.date, o.date) as date,
+        COALESCE(a.sensor_type, o.sensor_type) as sensor_type,
+        a.avg_value as actual_value,
+        o.optimal_value
+      FROM actual_data a
+      FULL OUTER JOIN optimal_data o 
+        ON a.date = o.date AND a.sensor_type = o.sensor_type
+      ORDER BY date, sensor_type;
     `;
+
     const result = await pool.query(query, [
       farmId, 
       startDate.format('YYYY-MM-DD'), 
@@ -69,11 +92,17 @@ router.get('/user/sensor-data', async (req, res) => {
         // 모든 센서 타입에 대해 null로 초기화
         acc[date] = {
           date,
-          ...Object.fromEntries(sensorTypes.map(type => [type, null]))
+          ...Object.fromEntries(sensorTypes.map(type => [type, {
+            actual: null,
+            optimal: null
+          }]))
         };
       }
-      // 센서 타입에 해당하는 값을 설정
-      acc[date][row.sensor_type] = Number(row.avg_value);
+      // 센서 타입에 해당하는 실제값과 최적값 설정
+      acc[date][row.sensor_type] = {
+        actual: Number(row.actual_value),
+        optimal: Number(row.optimal_value)
+      };
       return acc;
     }, {});
 

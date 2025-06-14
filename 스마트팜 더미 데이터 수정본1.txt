@@ -6,8 +6,7 @@ VALUES
 
 INSERT INTO farms (user_id, farm_name, location, farm_size, plant_name, notes, temperature_optimal, humidity_optimal, soil_moisture_optimal)
 VALUES
-  (1, '농장 A', '서울시 강남구', 500, '토마토', '양액 농법 사용', 25.0, 60.0, 30.0),
-  (1, '농장 B', '경기도 용인시', 800, '상추', '비닐하우스에서 재배', 22.0, 55.0, 35.0);
+  (1, '동아대 실내', '부산 사하구 하단동 840 공과대학 5호관 옥상', 100, '토마토', '양액 농법 사용', 25.0, 60.0, 30.0);
 
 INSERT INTO esps (farm_id, esp_name, device_type, ip_address, is_connected)
 VALUES
@@ -27,140 +26,6 @@ INSERT INTO actuators (esp_id, actuator_type, device_name, actuator_name, gpio_p
 VALUES
   (4, 'LED', 'LED',  'led', 5, TRUE),
   (5, '팬', '팬',  'fan', 5, TRUE);
-
-
--- 🌡️ 센서 로그 더미 데이터 (5시간 동안 10분 단위)
--- 온도 센서 데이터
-INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value) VALUES
-(NOW() - INTERVAL '5 hours', 1, '온도', 22.0),
-(NOW() - INTERVAL '4 hours 50 minutes', 1, '온도', 22.3),
-(NOW() - INTERVAL '4 hours 40 minutes', 1, '온도', 22.5),
-(NOW() - INTERVAL '4 hours 30 minutes', 1, '온도', 22.7),
-(NOW() - INTERVAL '4 hours 20 minutes', 1, '온도', 22.9),
-(NOW() - INTERVAL '4 hours 10 minutes', 1, '온도', 23.1),
-(NOW() - INTERVAL '4 hours', 1, '온도', 23.3),
-(NOW() - INTERVAL '3 hours 50 minutes', 1, '온도', 23.5),
-(NOW() - INTERVAL '3 hours 40 minutes', 1, '온도', 23.6),
-(NOW() - INTERVAL '3 hours 30 minutes', 1, '온도', 23.7),
-(NOW() - INTERVAL '3 hours 20 minutes', 1, '온도', 23.8),
-(NOW() - INTERVAL '3 hours 10 minutes', 1, '온도', 24.0),
-(NOW() - INTERVAL '3 hours', 1, '온도', 24.1),
-(NOW() - INTERVAL '2 hours 50 minutes', 1, '온도', 24.2),
-(NOW() - INTERVAL '2 hours 40 minutes', 1, '온도', 24.3),
-(NOW() - INTERVAL '2 hours 30 minutes', 1, '온도', 24.4),
-(NOW() - INTERVAL '2 hours 20 minutes', 1, '온도', 24.5),
-(NOW() - INTERVAL '2 hours 10 minutes', 1, '온도', 24.6),
-(NOW() - INTERVAL '2 hours', 1, '온도', 24.7),
-(NOW() - INTERVAL '1 hour 50 minutes', 1, '온도', 24.8),
-(NOW() - INTERVAL '1 hour 40 minutes', 1, '온도', 24.9),
-(NOW() - INTERVAL '1 hour 30 minutes', 1, '온도', 25.0),
-(NOW() - INTERVAL '1 hour 20 minutes', 1, '온도', 25.1),
-(NOW() - INTERVAL '1 hour 10 minutes', 1, '온도', 25.2),
-(NOW() - INTERVAL '1 hour', 1, '온도', 25.3),
-(NOW() - INTERVAL '50 minutes', 1, '온도', 25.4),
-(NOW() - INTERVAL '40 minutes', 1, '온도', 25.5),
-(NOW() - INTERVAL '30 minutes', 1, '온도', 25.6),
-(NOW() - INTERVAL '20 minutes', 1, '온도', 25.7),
-(NOW() - INTERVAL '10 minutes', 1, '온도', 25.8);
-
--- 습도 센서 데이터
-INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value) VALUES
-(NOW() - INTERVAL '5 hours', 2, '습도', 60.5),
-(NOW() - INTERVAL '4 hours 50 minutes', 2, '습도', 60.8),
-(NOW() - INTERVAL '4 hours 40 minutes', 2, '습도', 61.0),
-(NOW() - INTERVAL '4 hours 30 minutes', 2, '습도', 61.5),
-(NOW() - INTERVAL '4 hours 20 minutes', 2, '습도', 61.8),
-(NOW() - INTERVAL '4 hours 10 minutes', 2, '습도', 62.0),
-(NOW() - INTERVAL '4 hours', 2, '습도', 62.3),
-(NOW() - INTERVAL '3 hours 50 minutes', 2, '습도', 62.5),
-(NOW() - INTERVAL '3 hours 40 minutes', 2, '습도', 62.8),
-(NOW() - INTERVAL '3 hours 30 minutes', 2, '습도', 63.0),
-(NOW() - INTERVAL '3 hours 20 minutes', 2, '습도', 63.2),
-(NOW() - INTERVAL '3 hours 10 minutes', 2, '습도', 63.5),
-(NOW() - INTERVAL '3 hours', 2, '습도', 63.8),
-(NOW() - INTERVAL '2 hours 50 minutes', 2, '습도', 64.0),
-(NOW() - INTERVAL '2 hours 40 minutes', 2, '습도', 64.3),
-(NOW() - INTERVAL '2 hours 30 minutes', 2, '습도', 64.5),
-(NOW() - INTERVAL '2 hours 20 minutes', 2, '습도', 64.8),
-(NOW() - INTERVAL '2 hours 10 minutes', 2, '습도', 65.0),
-(NOW() - INTERVAL '2 hours', 2, '습도', 65.3),
-(NOW() - INTERVAL '1 hour 50 minutes', 2, '습도', 65.5),
-(NOW() - INTERVAL '1 hour 40 minutes', 2, '습도', 65.8),
-(NOW() - INTERVAL '1 hour 30 minutes', 2, '습도', 66.0),
-(NOW() - INTERVAL '1 hour 20 minutes', 2, '습도', 66.3),
-(NOW() - INTERVAL '1 hour 10 minutes', 2, '습도', 66.5),
-(NOW() - INTERVAL '1 hour', 2, '습도', 66.8),
-(NOW() - INTERVAL '50 minutes', 2, '습도', 67.0),
-(NOW() - INTERVAL '40 minutes', 2, '습도', 67.3),
-(NOW() - INTERVAL '30 minutes', 2, '습도', 67.5),
-(NOW() - INTERVAL '20 minutes', 2, '습도', 67.8),
-(NOW() - INTERVAL '10 minutes', 2, '습도', 68.0);
-
--- 조도 센서 데이터
-INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value) VALUES
-(NOW() - INTERVAL '5 hours', 3, '조도', 150.0),
-(NOW() - INTERVAL '4 hours 50 minutes', 3, '조도', 170.5),
-(NOW() - INTERVAL '4 hours 40 minutes', 3, '조도', 200.2),
-(NOW() - INTERVAL '4 hours 30 minutes', 3, '조도', 350.8),
-(NOW() - INTERVAL '4 hours 20 minutes', 3, '조도', 600.0),
-(NOW() - INTERVAL '4 hours 10 minutes', 3, '조도', 820.4),
-(NOW() - INTERVAL '4 hours', 3, '조도', 1200.0),
-(NOW() - INTERVAL '3 hours 50 minutes', 3, '조도', 2300.6),
-(NOW() - INTERVAL '3 hours 40 minutes', 3, '조도', 4500.0),
-(NOW() - INTERVAL '3 hours 30 minutes', 3, '조도', 7000.0),
-(NOW() - INTERVAL '3 hours 20 minutes', 3, '조도', 8200.3),
-(NOW() - INTERVAL '3 hours 10 minutes', 3, '조도', 9000.0),
-(NOW() - INTERVAL '3 hours', 3, '조도', 9500.5),
-(NOW() - INTERVAL '2 hours 50 minutes', 3, '조도', 9100.2),
-(NOW() - INTERVAL '2 hours 40 minutes', 3, '조도', 8700.0),
-(NOW() - INTERVAL '2 hours 30 minutes', 3, '조도', 8000.0),
-(NOW() - INTERVAL '2 hours 20 minutes', 3, '조도', 6000.0),
-(NOW() - INTERVAL '2 hours 10 minutes', 3, '조도', 4000.0),
-(NOW() - INTERVAL '2 hours', 3, '조도', 2800.0),
-(NOW() - INTERVAL '1 hour 50 minutes', 3, '조도', 1800.0),
-(NOW() - INTERVAL '1 hour 40 minutes', 3, '조도', 1000.0),
-(NOW() - INTERVAL '1 hour 30 minutes', 3, '조도', 800.0),
-(NOW() - INTERVAL '1 hour 20 minutes', 3, '조도', 500.0),
-(NOW() - INTERVAL '1 hour 10 minutes', 3, '조도', 300.0),
-(NOW() - INTERVAL '1 hour', 3, '조도', 200.0),
-(NOW() - INTERVAL '50 minutes', 3, '조도', 150.0),
-(NOW() - INTERVAL '40 minutes', 3, '조도', 130.0),
-(NOW() - INTERVAL '30 minutes', 3, '조도', 120.0),
-(NOW() - INTERVAL '20 minutes', 3, '조도', 110.0),
-(NOW() - INTERVAL '10 minutes', 3, '조도', 100.0);
-
--- 30일치 데이터 삽입
-INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value)
-SELECT
-    NOW() - INTERVAL '29 days' + (INTERVAL '1 day' * series.day) AS time,
-    1,  -- 온도 센서
-    '온도' AS sensor_type,
-    ROUND((20 + (RANDOM() * 10))::numeric, 2)  -- 20 ~ 30 사이의 랜덤 온도 값
-FROM generate_series(0, 29) AS series(day)
-
-UNION ALL
-
-SELECT
-    NOW() - INTERVAL '29 days' + (INTERVAL '1 day' * series.day) AS time,
-    2,  -- 습도 센서
-    '습도' AS sensor_type,
-    ROUND((40 + (RANDOM() * 40))::numeric, 2)  -- 40 ~ 80 사이의 랜덤 습도 값
-FROM generate_series(0, 29) AS series(day)
-
-UNION ALL
-
-SELECT
-    NOW() - INTERVAL '29 days' + (INTERVAL '1 day' * series.day) AS time,
-    3,
-    '조도' AS sensor_type,
-    ROUND((100 + (RANDOM() * 9900))::numeric, 2)  -- 100 ~ 10,000 lux
-FROM generate_series(0, 29) AS series(day);
-
-
-INSERT INTO actuator_logs (actuator_id, action, controlled_by, controlled_at)
-VALUES
-  (1, 'on', '관리자', '2025-05-01 12:00:00'),
-  (2, 'off', '관리자', '2025-05-01 12:05:00');
 
 
 -- 📝 게시글 더미 데이터
@@ -398,7 +263,103 @@ VALUES
  '/uploads/CDS.jpg', 
  '5x4 mm', '0~10,000 lux', 'N/A (상대값)', 'lux');
 
+-- 30일치 온도
+INSERT INTO sensor_logs (time, sensor_id, sensor_type, sensor_value)
+-- 온도
+SELECT
+    NOW() - INTERVAL '29 days' + INTERVAL '1 day' * gs.day,
+    1,
+    '온도',
+    ROUND((
+        CASE
+            WHEN gs.day BETWEEN 0 AND 6 THEN 21.0 + RANDOM() * (23.5 - 21.0)
+            WHEN gs.day BETWEEN 7 AND 13 THEN 22.0 + RANDOM() * (24.6 - 22.0)
+            WHEN gs.day BETWEEN 14 AND 20 THEN 23.0 + RANDOM() * (25.5 - 23.0)
+            ELSE 22.5 + RANDOM() * (26.0 - 22.5)
+        END
+    )::numeric, 2)
+FROM generate_series(0, 29) AS gs(day)
+
+UNION ALL
+
+-- 습도
+SELECT
+    NOW() - INTERVAL '29 days' + INTERVAL '1 day' * gs.day,
+    2,
+    '습도',
+    ROUND((
+        CASE
+            WHEN gs.day BETWEEN 0 AND 6 THEN 60.0 + RANDOM() * (66.0 - 60.0)
+            WHEN gs.day BETWEEN 7 AND 13 THEN 62.0 + RANDOM() * (68.0 - 62.0)
+            WHEN gs.day BETWEEN 14 AND 20 THEN 65.0 + RANDOM() * (71.0 - 65.0)
+            ELSE 67.0 + RANDOM() * (74.0 - 67.0)
+        END
+    )::numeric, 2)
+FROM generate_series(0, 29) AS gs(day)
+
+UNION ALL
+
+-- 조도
+SELECT
+    NOW() - INTERVAL '29 days' + INTERVAL '1 day' * gs.day,
+    3,
+    '조도',
+    ROUND((
+        CASE
+            WHEN gs.day BETWEEN 0 AND 6 THEN 8500 + RANDOM() * (9500 - 8500)
+            WHEN gs.day BETWEEN 7 AND 13 THEN 8800 + RANDOM() * (9800 - 8800)
+            WHEN gs.day BETWEEN 14 AND 20 THEN 9100 + RANDOM() * (10200 - 9100)
+            ELSE 9400 + RANDOM() * (10500 - 9400)
+        END
+    )::numeric, 2)
+FROM generate_series(0, 29) AS gs(day);
 
 
 
+INSERT INTO actuator_logs (actuator_id, action, controlled_by, controlled_at)
+VALUES
+  (1, 'on', '관리자', '2025-05-01 12:00:00'),
+  (2, 'off', '관리자', '2025-05-01 12:05:00');
+
+
+-- 최적
+
+INSERT INTO optimal_sensor_logs (time, sensor_type, optimal_value)
+SELECT
+  NOW() - INTERVAL '30 days' + (INTERVAL '1 day' * series.day) AS time,
+  '온도',
+  -- 온도 최적값 (예시)
+  CASE
+    WHEN series.day <= 7 THEN 22.4
+    WHEN series.day <= 14 THEN 23.1
+    WHEN series.day <= 21 THEN 24.0
+    ELSE 24.6
+  END AS optimal_value
+FROM generate_series(1, 30) AS series(day)
+
+UNION ALL
+
+SELECT
+  NOW() - INTERVAL '30 days' + (INTERVAL '1 day' * series.day) AS time,
+  '습도',
+  CASE
+    WHEN series.day <= 7 THEN 63.0
+    WHEN series.day <= 14 THEN 65.5
+    WHEN series.day <= 21 THEN 67.8
+    ELSE 69.5
+  END AS optimal_value
+FROM generate_series(1, 30) AS series(day)
+
+UNION ALL
+
+SELECT
+  NOW() - INTERVAL '30 days' + (INTERVAL '1 day' * series.day) AS time,
+  '조도',
+  CASE
+    WHEN series.day <= 7 THEN 9000
+    WHEN series.day <= 14 THEN 9500
+    WHEN series.day <= 21 THEN 10000
+    ELSE 10600
+  END AS optimal_value
+FROM generate_series(1, 30) AS series(day);
 

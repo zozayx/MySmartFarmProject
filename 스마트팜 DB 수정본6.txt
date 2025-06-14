@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS automation_conditions CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS store CASCADE;
 DROP TABLE IF EXISTS user_devices CASCADE;
+DROP TABLE IF EXISTS optimal_sensor_logs CASCADE;
 -- 👤 사용자 테이블
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
@@ -178,4 +179,11 @@ CREATE TABLE automation_conditions (
     trigger TEXT CHECK (trigger IN ('above', 'below')),
     threshold DOUBLE PRECISION,
     created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE optimal_sensor_logs (
+    time TIMESTAMPTZ NOT NULL,
+    sensor_type TEXT NOT NULL,
+    optimal_value DOUBLE PRECISION NOT NULL,
+    PRIMARY KEY (time, sensor_type)
 );
